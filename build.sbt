@@ -4,14 +4,12 @@ version := "0.1.0"
 
 scalaVersion := "2.11.2"
 
-crossScalaVersions := Seq("2.11.2", "2.10.4")
-
 organization := "com.themillhousegroup"
 
 libraryDependencies ++= Seq(
     "ch.qos.logback"              %   "logback-classic"       % "1.1.2",
     "com.typesafe.scala-logging"  %%  "scala-logging"         % "3.1.0",
-    "org.mockito"                 %   "mockito-all"           % "1.9.0",
+    "org.mockito"                 %   "mockito-all"           % "1.9.0"       % "test",
     "org.specs2"                  %%  "specs2"                % "2.3.12"      % "test"
 )
 
