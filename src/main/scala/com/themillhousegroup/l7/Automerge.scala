@@ -4,6 +4,8 @@ import java.io.File
 import com.typesafe.scalalogging.LazyLogging
 import scala.util.{ Success, Failure, Try }
 
+case class DifferenceSet(added: Seq[File], removed: Seq[File], modified: Seq[File])
+
 object Automerge {
   def apply(existingDirectoryName: String, newerDirectoryName: String) = {
     new Automerge(
