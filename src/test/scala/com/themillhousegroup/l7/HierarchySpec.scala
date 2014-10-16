@@ -41,6 +41,8 @@ class HierarchySpec extends Specification {
 
       result must haveLength(1)
 
+      println(HierarchyVisualiser.visualise(result))
+
       val top = result.head
 
       top must beAnInstanceOf[TopLevelNode]
