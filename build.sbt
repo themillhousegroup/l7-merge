@@ -1,3 +1,6 @@
+import com.typesafe.sbt.SbtNativePackager._
+import NativePackagerKeys._
+
 name := "l7-merge"
 
 version := "0.1.0"
@@ -28,4 +31,6 @@ publishTo := Some("Cloudbees releases" at "https://repository-themillhousegroup.
 scalariformSettings
 
 net.virtualvoid.sbt.graph.Plugin.graphSettings
+
+packageArchetype.java_application
 
