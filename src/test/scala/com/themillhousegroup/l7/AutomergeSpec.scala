@@ -11,17 +11,5 @@ class AutomergeSpec extends Specification {
 
       result must beAFailedTry
     }
-
-    "Detect new files" in {
-      val result = Automerge("src/test/resources/old", "src/test/resources/new").dryRun
-
-      result must beASuccessfulTry
-
-      val changedFiles = result.get
-
-      changedFiles must haveLength(1)
-
-      changedFiles.head.getName must beEqualTo("level2.xml")
-    }
   }
 }
