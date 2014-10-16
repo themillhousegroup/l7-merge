@@ -47,7 +47,7 @@ object HierarchyBuilder {
 
   private[this] def id(doc: Elem): Int = {
     doc.label match {
-      case "Folder" | "Service" => doc \@ "id" toInt
+      case "Folder" | "Service" | "Policy" => doc \@ "id" toInt
       case _ => 0
     }
   }
@@ -56,6 +56,7 @@ object HierarchyBuilder {
     doc.label match {
       case "Folder" => doc \@ "folderId" toInt
       case "Service" => doc \ "ServiceDetail" \@ "folderId" toInt
+      case "Policy" => doc \ "PolicyDetail" \@ "folderId" toInt
       case _ => 0
     }
   }
@@ -64,6 +65,7 @@ object HierarchyBuilder {
     doc.label match {
       case "Folder" => (doc \\ "Name").head.text
       case "Service" => (doc \ "ServiceDetail" \ "Name").head.text
+      case "Policy" => (doc \ "PolicyDetail" \ "Name").head.text
       case _ => "???"
     }
   }
