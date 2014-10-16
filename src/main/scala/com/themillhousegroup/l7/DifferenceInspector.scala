@@ -18,19 +18,19 @@ abstract class AbstractDifferenceInspector[T, I] extends LazyLogging {
     println(s"existing $existing; newer: $newer")
     if (newer.size < existing.size) {
       val diffs = calculateDifference(existing, newer)
-      logger.info(s"The following files seem to have been removed from $existingLabel:")
+      logger.info(s"The following items seem to have been removed from $existingLabel:")
       logger.info(s"${diffs.mkString(",")}")
       Success(DifferenceSet(Nil, diffs))
 
     } else if (newer.size > existing.size) {
       val diffs = calculateDifference(newer, existing)
-      logger.info(s"The following files seem to be new in $newerLabel:")
+      logger.info(s"The following items seem to be new in $newerLabel:")
       logger.info(s"${diffs.mkString(",")}")
       Success(DifferenceSet(diffs))
     } else {
 
       // TODO - diffs *within* files
-      failWith("Not implemented yet")
+      Success(DifferenceSet())
     }
   }
 
