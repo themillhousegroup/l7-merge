@@ -17,7 +17,9 @@ object HierarchyVisualiser {
   }
 
   private def visualise(sb: StringBuilder, nodes: Seq[HierarchyNode], indentLevel: Int): Unit = {
-    val sorted = nodes.sortWith { case (l, r) => l.name.compareTo(r.name) < 0 }
+    val sorted = nodes.sortWith {
+      case (l, r) => l.name.toLowerCase.compareTo(r.name.toLowerCase) < 0
+    }
 
     sorted.foreach { n =>
       sb.append(spaces(indentLevel))
