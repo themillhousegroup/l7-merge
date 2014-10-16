@@ -37,10 +37,8 @@ abstract class AbstractDifferenceInspector[T, I] extends LazyLogging {
   def identifier(thing: T): I
 }
 
-case class Directory(dir: File, contents: Seq[File])
-
 object DirectoryDifferenceInspector extends AbstractDifferenceInspector[File, String] {
-  def identifier(thing: File): String = thing.getName
+  def identifier(dir: File): String = dir.getName
 
   def diff(existing: Directory, newer: Directory) = {
     calculateDifferenceSet(

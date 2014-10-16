@@ -18,21 +18,7 @@ class Automerge(val existingDir: File, val newerDir: File) extends LazyLogging {
 
   def dryRun = merge(true)
 
-  def xmlFilesIn(dir: File): Try[Directory] = {
-
-    if (!dir.exists) {
-      failWith(s"Directory '${dir.getAbsolutePath}' does not exist. Cannot continue.")
-    } else if (!dir.isDirectory) {
-      failWith(s"File '${dir.getAbsolutePath}' is not a directory. Cannot continue.")
-    } else {
-      val xmlFiles: Seq[File] = dir.listFiles.filter(_.getName.endsWith(".xml"))
-      if (xmlFiles.isEmpty) {
-        failWith(s"Directory '${dir.getAbsolutePath}' is empty. Cannot continue.")
-      } else {
-        Success(Directory(dir, xmlFiles))
-      }
-    }
-  }
+  import DirectoryHelper.xmlFilesIn
 
   def merge(dryRun: Boolean = false): Try[DifferenceSet[File]] = {
     val maybeExistingDir = xmlFilesIn(existingDir)
@@ -50,3 +36,4 @@ class Automerge(val existingDir: File, val newerDir: File) extends LazyLogging {
 object Failures {
   def failWith(msg: String) = Failure(new IllegalArgumentException(msg))
 }
+
