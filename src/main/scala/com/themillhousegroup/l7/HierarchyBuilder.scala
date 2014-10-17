@@ -49,10 +49,7 @@ object HierarchyBuilder {
   }
 
   private[this] def id(doc: Elem): Int = {
-    doc.label match {
-      case "Folder" | "Service" | "Policy" | "ClusterProperty" => doc \@ "id" toInt
-      case _ => 0
-    }
+    doc \@ "id" toInt
   }
 
   private[this] def folderId(doc: Elem): Option[Int] = {
@@ -72,18 +69,14 @@ object HierarchyBuilder {
   }
 
   private[this] def version(doc: Elem): Int = {
-    doc.label match {
-      case "Folder" | "Service" | "Policy" | "ClusterProperty" => doc \@ "version" toInt
-      case _ => 0
-    }
+    doc \@ "version" toInt
   }
 
   private[this] def name(doc: Elem): String = {
     doc.label match {
-      case "Folder" | "ClusterProperty" => (doc \\ "Name").head.text
       case "Service" => (doc \ "ServiceDetail" \ "Name").head.text
       case "Policy" => (doc \ "PolicyDetail" \ "Name").head.text
-      case _ => "???"
+      case _  => (doc \\ "Name").head.text
     }
   }
 
