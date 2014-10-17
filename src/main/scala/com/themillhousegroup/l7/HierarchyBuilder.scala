@@ -20,7 +20,10 @@ object HierarchyBuilder {
       MutableTreeNode(id(doc), folderId(doc), guid(doc), version(doc), name(doc), None, doc, f, ListBuffer())
     }
 
-    val topLevelNodes = nodes.filter(_.folderId == topLevelMarkerId)
+    val topLevelNodes = nodes.filter { n =>
+      n.folderId.isEmpty ||
+        n.folderId.contains(topLevelMarkerId)
+    }
 
     def assembleTree(parents: Seq[MutableTreeNode], remaining: Seq[MutableTreeNode]): Unit = {
       val children = remaining.diff(parents)
@@ -31,7 +34,7 @@ object HierarchyBuilder {
       }
 
       nextLevel.map { n =>
-        val parent = parents.find(_.id == n.folderId).get
+        val parent = parents.find(p => n.folderId.contains(p.id)).get
         parent.children += n
         n.copy(parent = Some(parent))
       }
@@ -48,17 +51,17 @@ object HierarchyBuilder {
 
   private[this] def id(doc: Elem): Int = {
     doc.label match {
-      case "Folder" | "Service" | "Policy" => doc \@ "id" toInt
+      case "Folder" | "Service" | "Policy" | "ClusterProperty" => doc \@ "id" toInt
       case _ => 0
     }
   }
 
-  private[this] def folderId(doc: Elem): Int = {
+  private[this] def folderId(doc: Elem): Option[Int] = {
     doc.label match {
-      case "Folder" => doc \@ "folderId" toInt
-      case "Service" => doc \ "ServiceDetail" \@ "folderId" toInt
-      case "Policy" => doc \ "PolicyDetail" \@ "folderId" toInt
-      case _ => 0
+      case "Folder" => Some(doc \@ "folderId" toInt)
+      case "Service" => Some(doc \ "ServiceDetail" \@ "folderId" toInt)
+      case "Policy" => Some(doc \ "PolicyDetail" \@ "folderId" toInt)
+      case _ => None
     }
   }
 
@@ -71,14 +74,14 @@ object HierarchyBuilder {
 
   private[this] def version(doc: Elem): Int = {
     doc.label match {
-      case "Folder" | "Service" | "Policy" => doc \@ "version" toInt
+      case "Folder" | "Service" | "Policy" | "ClusterProperty" => doc \@ "version" toInt
       case _ => 0
     }
   }
 
   private[this] def name(doc: Elem): String = {
     doc.label match {
-      case "Folder" => (doc \\ "Name").head.text
+      case "Folder" | "ClusterProperty" => (doc \\ "Name").head.text
       case "Service" => (doc \ "ServiceDetail" \ "Name").head.text
       case "Policy" => (doc \ "PolicyDetail" \ "Name").head.text
       case _ => "???"
@@ -88,7 +91,7 @@ object HierarchyBuilder {
   // While we build up the hierarchy ...
   private case class MutableTreeNode(
       val id: Int,
-      val folderId: Int,
+      val folderId: Option[Int],
       val guid: Option[UUID],
       val version: Int,
       val name: String,
@@ -103,7 +106,7 @@ object HierarchyBuilder {
 
 trait HierarchyNode {
   val id: Int
-  val folderId: Int
+  val folderId: Option[Int]
   val guid: Option[UUID]
   val version: Int
   val name: String
@@ -115,6 +118,6 @@ trait HierarchyNode {
 
 case class TopLevelNode(val id: Int, val guid: Option[UUID], val version: Int, val name: String, val content: Elem, source: File, val children: Seq[HierarchyNode])
     extends HierarchyNode {
-  val folderId = HierarchyBuilder.topLevelMarkerId
+  val folderId = Some(HierarchyBuilder.topLevelMarkerId)
   val parent = None
 }
