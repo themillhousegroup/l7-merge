@@ -76,7 +76,7 @@ object HierarchyBuilder {
     doc.label match {
       case "Service" => (doc \ "ServiceDetail" \ "Name").head.text
       case "Policy" => (doc \ "PolicyDetail" \ "Name").head.text
-      case _  => (doc \\ "Name").head.text
+      case _ => (doc \\ "Name").head.text
     }
   }
 
