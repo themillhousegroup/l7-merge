@@ -21,8 +21,7 @@ object HierarchyBuilder {
     }
 
     val topLevelNodes = nodes.filter { n =>
-      n.folderId.isEmpty ||
-        n.folderId.contains(topLevelMarkerId)
+      n.folderId.isEmpty || n.folderId.contains(topLevelMarkerId)
     }
 
     def assembleTree(parents: Seq[MutableTreeNode], remaining: Seq[MutableTreeNode]): Unit = {
@@ -30,7 +29,7 @@ object HierarchyBuilder {
       val parentIds = parents.map(_.id)
 
       val nextLevel = children.filter { n =>
-        parentIds.contains(n.folderId)
+        parentIds.contains(n.folderId.get)
       }
 
       nextLevel.map { n =>
