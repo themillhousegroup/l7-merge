@@ -3,6 +3,7 @@ package com.themillhousegroup.l7
 import scala.xml.Elem
 import java.io.File
 import scala.collection.mutable.ListBuffer
+import java.util.UUID
 
 /** Represents the tree structure of Layer7 XML snippets */
 object HierarchyBuilder {
@@ -16,7 +17,7 @@ object HierarchyBuilder {
 
     val nodes = files.map { f =>
       val doc = scala.xml.XML.loadFile(f)
-      MutableTreeNode(id(doc), folderId(doc), name(doc), None, doc, ListBuffer())
+      MutableTreeNode(id(doc), folderId(doc), guid(doc), version(doc), name(doc), None, doc, f, ListBuffer())
     }
 
     val topLevelNodes = nodes.filter(_.folderId == topLevelMarkerId)
@@ -61,6 +62,20 @@ object HierarchyBuilder {
     }
   }
 
+  private[this] def guid(doc: Elem): Option[UUID] = {
+    doc.label match {
+      case "Policy" => Some(UUID.fromString(doc \ "PolicyDetail" \@ "guid"))
+      case _ => None
+    }
+  }
+
+  private[this] def version(doc: Elem): Int = {
+    doc.label match {
+      case "Folder" | "Service" | "Policy" => doc \@ "version" toInt
+      case _ => 0
+    }
+  }
+
   private[this] def name(doc: Elem): String = {
     doc.label match {
       case "Folder" => (doc \\ "Name").head.text
@@ -72,25 +87,33 @@ object HierarchyBuilder {
 
   // While we build up the hierarchy ...
   private case class MutableTreeNode(
-      val id: Int, val folderId: Int, val name: String,
+      val id: Int,
+      val folderId: Int,
+      val guid: Option[UUID],
+      val version: Int,
+      val name: String,
       parent: Option[HierarchyNode],
       val content: Elem,
+      val source: File,
       val children: ListBuffer[HierarchyNode]) extends HierarchyNode {
 
-    def asTopLevelNode = TopLevelNode(id, name, content, children.toSeq)
+    def asTopLevelNode = TopLevelNode(id, guid, version, name, content, source, children.toSeq)
   }
 }
 
 trait HierarchyNode {
   val id: Int
   val folderId: Int
+  val guid: Option[UUID]
+  val version: Int
   val name: String
   val parent: Option[HierarchyNode]
   val content: Elem
+  val source: File
   val children: Seq[HierarchyNode]
 }
 
-case class TopLevelNode(val id: Int, val name: String, val content: Elem, val children: Seq[HierarchyNode])
+case class TopLevelNode(val id: Int, val guid: Option[UUID], val version: Int, val name: String, val content: Elem, source: File, val children: Seq[HierarchyNode])
     extends HierarchyNode {
   val folderId = HierarchyBuilder.topLevelMarkerId
   val parent = None
