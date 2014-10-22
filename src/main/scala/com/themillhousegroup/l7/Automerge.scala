@@ -5,6 +5,7 @@ import com.typesafe.scalalogging.LazyLogging
 import scala.util.{ Success, Failure, Try }
 import Failures._
 import scala.collection.mutable.ListBuffer
+import org.apache.commons.lang3.StringUtils
 
 object Automerge {
   def apply(existingDirectoryName: String, newerDirectoryName: String) = {
@@ -48,6 +49,7 @@ abstract class Command(val name: String) {
 object AutomergeApp extends App {
 
   private lazy val knownCommands = ListBuffer[Command](VisualiserCommand)
+  private val typoThreshold = 3
 
   if (args.isEmpty) {
     println("Usage: Provide a command and optional args")
@@ -59,6 +61,18 @@ object AutomergeApp extends App {
     val desiredCommand = args.head
     knownCommands.find(desiredCommand == _.name).map { cmd =>
       cmd.runWith(args.tail)
+    }.orElse {
+      val suggestions = knownCommands.filter { c =>
+        val dist = StringUtils.getLevenshteinDistance(c.name, desiredCommand)
+        dist < typoThreshold
+      }
+      if (suggestions.isEmpty) {
+        println("Unknown command")
+      } else {
+        println(s"Did you mean:")
+        println(suggestions.map(_.name).mkString("  ", "\n", ""))
+      }
+      None
     }
   }
 }
