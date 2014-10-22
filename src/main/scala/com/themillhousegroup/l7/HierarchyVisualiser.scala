@@ -23,7 +23,7 @@ object HierarchyVisualiser {
 
     sorted.foreach { n =>
       sb.append(spaces(indentLevel))
-      sb.append(n.name)
+      sb.append(n)
       sb.append("\n")
       visualise(sb, n.children, indentLevel + indentSize)
     }

@@ -1,6 +1,6 @@
 package com.themillhousegroup.l7
 
-import scala.xml.Elem
+import scala.xml.{ NodeSeq, Elem }
 import java.io.File
 import scala.collection.mutable.ListBuffer
 import java.util.UUID
@@ -60,15 +60,19 @@ object HierarchyBuilder extends LazyLogging {
     topLevelNodes.map(_.asTopLevelNode)
   }
 
+  def optAttrib(doc: NodeSeq, attributeName: String): Option[String] = {
+    (doc \ ("@" + attributeName)).theSeq.headOption.map(_.text)
+  }
+
   private[this] def id(doc: Elem): Int = {
     doc \@ "id" toInt
   }
 
   private[this] def folderId(doc: Elem): Option[Int] = {
     doc.label match {
-      case "Folder" => Some(doc \@ "folderId" toInt)
-      case "Service" => Some(doc \ "ServiceDetail" \@ "folderId" toInt)
-      case "Policy" => Some(doc \ "PolicyDetail" \@ "folderId" toInt)
+      case "Folder" => optAttrib(doc, "folderId").map(_.toInt)
+      case "Service" => optAttrib(doc \ "ServiceDetail", "folderId").map(_.toInt)
+      case "Policy" => optAttrib(doc \ "PolicyDetail", "folderId").map(_.toInt)
       case _ => None
     }
   }
@@ -105,7 +109,6 @@ object HierarchyBuilder extends LazyLogging {
       val children: ListBuffer[HierarchyNode]) extends HierarchyNode {
 
     def asTopLevelNode = TopLevelNode(id, guid, version, name, content, source, children.toSeq)
-
   }
 }
 
@@ -119,6 +122,10 @@ trait HierarchyNode {
   val content: Elem
   val source: File
   val children: Seq[HierarchyNode]
+
+  override def toString = {
+    s"$name ($id) v$version"
+  }
 }
 
 case class TopLevelNode(val id: Int, val guid: Option[UUID], val version: Int, val name: String, val content: Elem, source: File, val children: Seq[HierarchyNode])
