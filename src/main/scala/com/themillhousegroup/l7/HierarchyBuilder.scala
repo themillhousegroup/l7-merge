@@ -1,10 +1,14 @@
 package com.themillhousegroup.l7
 
-import scala.xml.{ NodeSeq, Elem }
+import scala.xml._
 import java.io.File
 import scala.collection.mutable.ListBuffer
 import java.util.UUID
 import com.typesafe.scalalogging.LazyLogging
+import scala.xml.transform.{RuleTransformer, RewriteRule}
+import scala.Some
+import com.themillhousegroup.l7.TopLevelNode
+import com.themillhousegroup.l7.MutableTreeNode
 
 /** Represents the tree structure of Layer7 XML snippets */
 object HierarchyBuilder extends LazyLogging {
@@ -32,6 +36,26 @@ object HierarchyBuilder extends LazyLogging {
       logger.warn(s"File $f has contents that cannot be handled.")
       None
     }
+  }
+
+  def mergeTogether(older:HierarchyNode, newer:HierarchyNode, destinationFile:File):HierarchyNode = {
+
+    val updatedContent =
+      replaceId(newer.content, older.id)
+      .replaceFolderId(newer.content, older.folderId)
+      .replaceGuid(newer.content, older.guid)
+
+    val merged = MutableTreeNode(
+      older.id,
+      older.folderId,
+      older.guid,
+      newer.version,
+      newer.name,
+      older.parent,
+      updatedContent,
+      destinationFile,
+      ListBuffer(older.children)
+    )
   }
 
   /**
@@ -78,6 +102,10 @@ object HierarchyBuilder extends LazyLogging {
     doc \@ "id" toInt
   }
 
+  private[this] def replaceId(doc: Elem, newId:Int): Int = {
+    doc
+  }
+
   private[this] def folderId(doc: Elem): Option[Int] = {
     doc.label match {
       case "Folder" => optAttrib(doc, "folderId").map(_.toInt)
@@ -105,20 +133,22 @@ object HierarchyBuilder extends LazyLogging {
       case _ => (doc \\ "Name").head.text
     }
   }
+}
 
-  // While we build up the hierarchy ...
-  private case class MutableTreeNode(
-      val id: Int,
-      val folderId: Option[Int],
-      val guid: Option[UUID],
-      val version: Int,
-      val name: String,
-      parent: Option[HierarchyNode],
-      val content: Elem,
-      val source: File,
-      val children: ListBuffer[HierarchyNode]) extends HierarchyNode {
+object AttributeChanger {
 
-    def asTopLevelNode = TopLevelNode(id, guid, version, name, content, source, children.toSeq)
+  def convert(doc:Node, label:String, attribName:String, newValue:String):Node = {
+    val rewrite = new RewriteRule {
+      override def transform(n: Node) = n match {
+        case label =>
+        case e @ <b>{_*}</b> => e.asInstanceOf[Elem] %
+          Attribute(null, "attr1", "200",
+            Attribute(null, "attr2", "100", Null))
+        case _ => n
+      }
+    }
+  
+    new RuleTransformer(rewrite).transform(doc).head
   }
 }
 
@@ -134,9 +164,11 @@ object HierarchyNode {
   def newerOf(a: HierarchyNode, b: HierarchyNode) = {
     compareBy(a.version > b.version, a, b)
   }
+
+
 }
 
-trait HierarchyNode {
+trait HierarchyNode extends Product {
   val id: Int
   val folderId: Option[Int]
   val guid: Option[UUID]
@@ -150,6 +182,21 @@ trait HierarchyNode {
   override def toString = {
     s"$name ($id) v$version"
   }
+}
+
+// While we build up the hierarchy ...
+private[l7] case class MutableTreeNode(
+                                    val id: Int,
+                                    val folderId: Option[Int],
+                                    val guid: Option[UUID],
+                                    val version: Int,
+                                    val name: String,
+                                    parent: Option[HierarchyNode],
+                                    val content: Elem,
+                                    val source: File,
+                                    val children: ListBuffer[HierarchyNode]) extends HierarchyNode {
+
+  def asTopLevelNode = TopLevelNode(id, guid, version, name, content, source, children.toSeq)
 }
 
 case class TopLevelNode(val id: Int, val guid: Option[UUID], val version: Int, val name: String, val content: Elem, source: File, val children: Seq[HierarchyNode])

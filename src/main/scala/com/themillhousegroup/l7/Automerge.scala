@@ -48,7 +48,10 @@ abstract class Command(val name: String) {
 
 object AutomergeApp extends App {
 
-  private lazy val knownCommands = ListBuffer[Command](VisualiserCommand)
+  private lazy val knownCommands = ListBuffer[Command](
+    SingleDocumentComparisonCommand,
+    VisualiserCommand)
+
   private val typoThreshold = 3
 
   if (args.isEmpty) {
@@ -67,7 +70,7 @@ object AutomergeApp extends App {
         dist < typoThreshold
       }
       if (suggestions.isEmpty) {
-        println("Unknown command")
+        println(s"Unknown command '$desiredCommand'")
       } else {
         println(s"Did you mean:")
         println(suggestions.map(_.name).mkString("  ", "\n", ""))
