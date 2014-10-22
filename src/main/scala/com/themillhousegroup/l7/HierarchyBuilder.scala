@@ -17,20 +17,30 @@ object HierarchyBuilder extends LazyLogging {
   }
 
   /**
+   * Builds a HierarchyNode based on what it finds in the file,
+   * or None if it's of a type that is not supported.
+   */
+  def fromFile(file: File): Option[HierarchyNode] = {
+    buildNode(file)
+  }
+
+  private def buildNode(f: File): Option[MutableTreeNode] = {
+    val doc = scala.xml.XML.loadFile(f)
+    if (isSupported(doc)) {
+      Some(MutableTreeNode(id(doc), folderId(doc), guid(doc), version(doc), name(doc), None, doc, f, ListBuffer()))
+    } else {
+      logger.warn(s"File $f has contents that cannot be handled.")
+      None
+    }
+  }
+
+  /**
    * Returns a sequence of TopLevelNode instances, each of
    * which may have HierarchyNode children
    */
   def fromFiles(files: Seq[File]): Seq[TopLevelNode] = {
 
-    val nodes = files.flatMap { f =>
-      val doc = scala.xml.XML.loadFile(f)
-      if (isSupported(doc)) {
-        Some(MutableTreeNode(id(doc), folderId(doc), guid(doc), version(doc), name(doc), None, doc, f, ListBuffer()))
-      } else {
-        logger.warn(s"File $f has contents that cannot be handled.")
-        None
-      }
-    }
+    val nodes = files.flatMap(buildNode(_))
 
     val topLevelNodes = nodes.filter { n =>
       n.folderId.isEmpty || n.folderId.contains(topLevelMarkerId)
@@ -109,6 +119,20 @@ object HierarchyBuilder extends LazyLogging {
       val children: ListBuffer[HierarchyNode]) extends HierarchyNode {
 
     def asTopLevelNode = TopLevelNode(id, guid, version, name, content, source, children.toSeq)
+  }
+}
+
+object HierarchyNode {
+
+  private def compareBy(f: => Boolean, a: HierarchyNode, b: HierarchyNode): HierarchyNode = {
+    if (f) a else b
+  }
+
+  def olderOf(a: HierarchyNode, b: HierarchyNode) = {
+    compareBy(a.version < b.version, a, b)
+  }
+  def newerOf(a: HierarchyNode, b: HierarchyNode) = {
+    compareBy(a.version > b.version, a, b)
   }
 }
 
