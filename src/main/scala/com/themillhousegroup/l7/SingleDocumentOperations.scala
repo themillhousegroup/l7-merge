@@ -2,13 +2,19 @@ package com.themillhousegroup.l7
 
 import java.io.File
 
-object SingleDocumentComparison {
+object SingleDocumentOperations {
   import HierarchyNode._
   def compare(left: HierarchyNode, right: HierarchyNode) = {
     val older = olderOf(left, right)
     val newer = newerOf(left, right)
 
     println(s"$newer is newer than $older")
+
+    if ((newer.id == older.id)
+      && (newer.guid == older.guid)
+      && (newer.folderId == older.folderId)) {
+      println("Looks like change can be merged")
+    }
   }
 }
 
@@ -25,7 +31,7 @@ object SingleDocumentComparisonCommand extends Command("compare") {
       for {
         left <- HierarchyBuilder.fromFile(leftFile)
         right <- HierarchyBuilder.fromFile(rightFile)
-      } yield (SingleDocumentComparison.compare(left, right))
+      } yield (SingleDocumentOperations.compare(left, right))
     }
   }
 }
