@@ -4,10 +4,17 @@ import scala.xml.Elem
 import java.io.File
 import scala.collection.mutable.ListBuffer
 import java.util.UUID
+import com.typesafe.scalalogging.LazyLogging
 
 /** Represents the tree structure of Layer7 XML snippets */
-object HierarchyBuilder {
+object HierarchyBuilder extends LazyLogging {
   val topLevelMarkerId = -5002
+
+  val ignoredTypes = Seq("PrivateKey")
+
+  def isSupported(doc: Elem) = {
+    !ignoredTypes.exists(_ == doc.label)
+  }
 
   /**
    * Returns a sequence of TopLevelNode instances, each of
@@ -15,9 +22,14 @@ object HierarchyBuilder {
    */
   def fromFiles(files: Seq[File]): Seq[TopLevelNode] = {
 
-    val nodes = files.map { f =>
+    val nodes = files.flatMap { f =>
       val doc = scala.xml.XML.loadFile(f)
-      MutableTreeNode(id(doc), folderId(doc), guid(doc), version(doc), name(doc), None, doc, f, ListBuffer())
+      if (isSupported(doc)) {
+        Some(MutableTreeNode(id(doc), folderId(doc), guid(doc), version(doc), name(doc), None, doc, f, ListBuffer()))
+      } else {
+        logger.warn(s"File $f has contents that cannot be handled.")
+        None
+      }
     }
 
     val topLevelNodes = nodes.filter { n =>
@@ -93,6 +105,7 @@ object HierarchyBuilder {
       val children: ListBuffer[HierarchyNode]) extends HierarchyNode {
 
     def asTopLevelNode = TopLevelNode(id, guid, version, name, content, source, children.toSeq)
+
   }
 }
 
