@@ -7,6 +7,7 @@ import java.util.UUID
 import com.typesafe.scalalogging.LazyLogging
 import scala.xml.transform.{ RuleTransformer, RewriteRule }
 import scala.Some
+import com.themillhousegroup.l7.xml.AttributeChanger
 
 /** Represents the tree structure of Layer7 XML snippets */
 object HierarchyBuilder extends LazyLogging {
@@ -173,31 +174,6 @@ object HierarchyBuilder extends LazyLogging {
       case "Policy" => (doc \ "PolicyDetail" \ "Name").head.text
       case _ => (doc \\ "Name").head.text
     }
-  }
-}
-
-object AttributeChanger {
-
-  def convert(doc: Node, label: Option[String], attribName: String, newValue: String): Elem = {
-    val rewrite = new RewriteRule {
-
-      def innerTransform(n: Node): Node = n match {
-        case elem @ Elem(_, label, atts, _, child @ _*) => {
-          val maybeAttrib = Option(atts(attribName))
-          maybeAttrib.map { a =>
-            elem.asInstanceOf[Elem] % Attribute(None, attribName, Text(newValue), Null) copy (child = child map innerTransform)
-          }.getOrElse(elem.asInstanceOf[Elem].copy(child = child map innerTransform))
-
-        }
-        case elem @ Elem(_, _, _, _, child @ _*) => elem.asInstanceOf[Elem].copy(child = child map innerTransform)
-        case _ => n
-
-      }
-
-      override def transform(n: Node) = innerTransform(n)
-    }
-
-    new RuleTransformer(rewrite).transform(doc).head.asInstanceOf[Elem]
   }
 }
 
