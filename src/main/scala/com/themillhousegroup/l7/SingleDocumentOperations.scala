@@ -1,8 +1,9 @@
 package com.themillhousegroup.l7
 
 import java.io.File
+import com.typesafe.scalalogging.LazyLogging
 
-object SingleDocumentOperations {
+object SingleDocumentOperations extends LazyLogging {
   import HierarchyNode._
   import HierarchyBuilder._
   def compare(left: HierarchyNode, right: HierarchyNode) = {
@@ -13,21 +14,26 @@ object SingleDocumentOperations {
     val older = olderOf(left, right)
     val newer = newerOf(left, right)
 
-    println(s"$newer is newer than $older")
+    logger.info(s"File: ${newer.source.getAbsolutePath}is newer than file: ${older.source.getAbsolutePath}")
 
-    println(s"older:\n${older.content}\n\n")
+    logger.debug(s"older:\n${older.content}\n\n")
 
     //    println(s"newer:\n${newer.content}\n\n")
 
     if ((newer.id == older.id)
-      && (newer.guid == older.guid)
-      && (newer.folderId == older.folderId)) {
+      && (newer.guid == older.guid)) {
       if (destination.isEmpty) { // i.e. dry run mode
-        println("Looks like change can be merged")
+        logger.info("Looks like change can be merged")
       } else {
         val merged = mergeTogether(older, newer, destination.get)
         //println(s"Merged: $merged")
+        logger.info(s"Merged and wrote the following to ${merged.source.getAbsolutePath}:\n${merged.content}")
       }
+    } else {
+      logger.error(s"Files seem to be referring to different things. Details follow (older, then newer):")
+      logger.error(s"IDs:        ${older.id}\t${newer.id}")
+      logger.error(s"GUIDs:      ${older.guid}\t${newer.guid}")
+      logger.error(s"folderIDs:  ${older.folderId}\t${newer.folderId}")
     }
 
   }
@@ -53,7 +59,7 @@ object SingleDocumentComparisonCommand extends Command("compare-one") {
 
 object SingleDocumentMergeCommand extends Command("merge-one") {
 
-  val expectedArgs = "[file1] [file2] to merge the contents of the newer file into the older"
+  val expectedArgs = "[file1] [file2] to merge the contents of file2 into file1"
 
   def runWith(args: Seq[String]) = {
     if (args.size != 2) {
@@ -64,7 +70,7 @@ object SingleDocumentMergeCommand extends Command("merge-one") {
       for {
         left <- HierarchyBuilder.fromFile(leftFile)
         right <- HierarchyBuilder.fromFile(rightFile)
-      } yield (SingleDocumentOperations.merge(left, right, Some(new File("tmp.xml"))))
+      } yield (SingleDocumentOperations.merge(left, right, Some(leftFile)))
     }
   }
 }
