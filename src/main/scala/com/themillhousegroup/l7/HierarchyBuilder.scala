@@ -1,13 +1,13 @@
 package com.themillhousegroup.l7
 
 import scala.xml._
-import java.io.{ StringWriter, FileWriter, File }
+import java.io.File
 import scala.collection.mutable.ListBuffer
 import java.util.UUID
 import com.typesafe.scalalogging.LazyLogging
-import scala.xml.transform.{ RuleTransformer, RewriteRule }
 import scala.Some
 import com.themillhousegroup.l7.xml.AttributeChanger
+import com.themillhousegroup.l7.xml.LayerSevenXMLHelper._
 
 /** Represents the tree structure of Layer7 XML snippets */
 object HierarchyBuilder extends LazyLogging {
@@ -35,26 +35,6 @@ object HierarchyBuilder extends LazyLogging {
       logger.warn(s"File $f has contents that cannot be handled.")
       None
     }
-  }
-
-  /** Various hacks to make it look L7-originated */
-  def writeTo(f: File, doc: Elem): File = {
-
-    val sr = new StringWriter()
-    XML.write(sr, doc, "UTF-8", true, null)
-    val escaped = sr.toString
-    val unescaped = escaped.replace("&quot;", "\"")
-    val withStandalone = unescaped.replace(
-      """<?xml version='1.0' encoding='UTF-8'?>""",
-      """<?xml version="1.0" encoding="UTF-8" standalone="no"?>""")
-    val newlineStripped = withStandalone.replaceFirst("\\n", "")
-
-    val writer = new FileWriter(f)
-    writer.write(newlineStripped)
-    writer.close
-
-    f
-
   }
 
   def mergeTogether(older: HierarchyNode, newer: HierarchyNode, destinationFile: File): HierarchyNode = {
@@ -122,58 +102,6 @@ object HierarchyBuilder extends LazyLogging {
     assembleTree(topLevelNodes, nodes)
 
     topLevelNodes.map(_.asTopLevelNode)
-  }
-
-  def optAttrib(doc: NodeSeq, attributeName: String): Option[String] = {
-    (doc \ ("@" + attributeName)).theSeq.headOption.map(_.text)
-  }
-
-  private[this] def id(doc: Elem): Int = {
-    doc \@ "id" toInt
-  }
-
-  private[this] def replaceId(doc: Elem, newId: Int): Elem = {
-    AttributeChanger.convert(doc, None, "id", newId.toString)
-  }
-
-  private[this] def folderId(doc: Elem): Option[Int] = {
-    doc.label match {
-      case "Folder" => optAttrib(doc, "folderId").map(_.toInt)
-      case "Service" => optAttrib(doc \ "ServiceDetail", "folderId").map(_.toInt)
-      case "Policy" => optAttrib(doc \ "PolicyDetail", "folderId").map(_.toInt)
-      case _ => None
-    }
-  }
-
-  private[this] def replaceFolderId(doc: Elem, newFolderId: Option[Int]): Elem = {
-    newFolderId.map { f =>
-      AttributeChanger.convert(doc, None, "folderId", f.toString)
-    }.getOrElse(doc)
-  }
-
-  private[this] def guid(doc: Elem): Option[UUID] = {
-    doc.label match {
-      case "Policy" => Some(UUID.fromString(doc \ "PolicyDetail" \@ "guid"))
-      case _ => None
-    }
-  }
-
-  private[this] def replaceGuid(doc: Elem, newGuid: Option[UUID]): Elem = {
-    newGuid.map { guid =>
-      AttributeChanger.convert(doc, Some("PolicyDetail"), "guid", guid.toString)
-    }.getOrElse(doc)
-  }
-
-  private[this] def version(doc: Elem): Int = {
-    doc \@ "version" toInt
-  }
-
-  private[this] def name(doc: Elem): String = {
-    doc.label match {
-      case "Service" => (doc \ "ServiceDetail" \ "Name").head.text
-      case "Policy" => (doc \ "PolicyDetail" \ "Name").head.text
-      case _ => (doc \\ "Name").head.text
-    }
   }
 }
 
