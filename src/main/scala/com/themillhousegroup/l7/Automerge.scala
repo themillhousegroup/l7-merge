@@ -48,18 +48,20 @@ abstract class Command(val name: String) {
 
 object AutomergeApp extends App {
 
-  private lazy val knownCommands = ListBuffer[Command](
+  private lazy val knownCommands = Seq[Command](
     SingleDocumentComparisonCommand,
+    SingleDocumentMergeCommand,
     VisualiserCommand)
 
   private val typoThreshold = 3
 
   if (args.isEmpty) {
     println("Usage: Provide a command and optional args")
-    println("Available commands are")
+    println("Available commands are:\n")
     knownCommands.foreach { cmd =>
       println(s"${cmd.name} ${cmd.expectedArgs}")
     }
+    println("\n")
   } else {
     val desiredCommand = args.head
     knownCommands.find(desiredCommand == _.name).map { cmd =>

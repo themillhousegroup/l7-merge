@@ -9,11 +9,14 @@ object SingleDocumentOperations {
     merge(left, right, None)
   }
 
-  def merge(left: HierarchyNode, right: HierarchyNode, destination:Option[File] = None) = {
+  def merge(left: HierarchyNode, right: HierarchyNode, destination: Option[File] = None) = {
     val older = olderOf(left, right)
     val newer = newerOf(left, right)
 
     println(s"$newer is newer than $older")
+
+    println(s"older:\n${older.content}\n\n")
+    println(s"newer:\n${newer.content}\n\n")
 
     if ((newer.id == older.id)
       && (newer.guid == older.guid)
@@ -22,6 +25,7 @@ object SingleDocumentOperations {
         println("Looks like change can be merged")
       } else {
         val merged = mergeTogether(older, newer, destination.get)
+        println(s"Merged: $merged")
       }
     }
 
@@ -59,7 +63,7 @@ object SingleDocumentMergeCommand extends Command("merge-one") {
       for {
         left <- HierarchyBuilder.fromFile(leftFile)
         right <- HierarchyBuilder.fromFile(rightFile)
-      } yield (SingleDocumentOperations.merge(left, right))
+      } yield (SingleDocumentOperations.merge(left, right, Some(new File("tmp.xml"))))
     }
   }
 }

@@ -1,14 +1,12 @@
 package com.themillhousegroup.l7
 
 import scala.xml._
-import java.io.File
+import java.io.{ FileWriter, File }
 import scala.collection.mutable.ListBuffer
 import java.util.UUID
 import com.typesafe.scalalogging.LazyLogging
-import scala.xml.transform.{RuleTransformer, RewriteRule}
+import scala.xml.transform.{ RuleTransformer, RewriteRule }
 import scala.Some
-import com.themillhousegroup.l7.TopLevelNode
-import com.themillhousegroup.l7.MutableTreeNode
 
 /** Represents the tree structure of Layer7 XML snippets */
 object HierarchyBuilder extends LazyLogging {
@@ -38,12 +36,26 @@ object HierarchyBuilder extends LazyLogging {
     }
   }
 
-  def mergeTogether(older:HierarchyNode, newer:HierarchyNode, destinationFile:File):HierarchyNode = {
+  def writeTo(f: File, doc: Elem): File = {
+    val writer = new FileWriter(f)
+    XML.write(writer, doc, XML.encoding, false, null)
+    writer.close
+    f
+  }
+
+  def mergeTogether(older: HierarchyNode, newer: HierarchyNode, destinationFile: File): HierarchyNode = {
 
     val updatedContent =
-      replaceId(newer.content, older.id)
-      .replaceFolderId(newer.content, older.folderId)
-      .replaceGuid(newer.content, older.guid)
+      replaceId(
+        replaceFolderId(
+          replaceGuid(newer.content, older.guid),
+          older.folderId),
+        older.id)
+
+    writeTo(destinationFile, updatedContent)
+
+    val newChildren = ListBuffer[HierarchyNode]()
+    newChildren.insertAll(0, newer.children)
 
     val merged = MutableTreeNode(
       older.id,
@@ -54,8 +66,12 @@ object HierarchyBuilder extends LazyLogging {
       older.parent,
       updatedContent,
       destinationFile,
-      ListBuffer(older.children)
+      newChildren
     )
+
+    println(updatedContent)
+
+    merged
   }
 
   /**
@@ -102,8 +118,8 @@ object HierarchyBuilder extends LazyLogging {
     doc \@ "id" toInt
   }
 
-  private[this] def replaceId(doc: Elem, newId:Int): Int = {
-    doc
+  private[this] def replaceId(doc: Elem, newId: Int): Elem = {
+    AttributeChanger.convert(doc, None, "id", newId.toString)
   }
 
   private[this] def folderId(doc: Elem): Option[Int] = {
@@ -115,11 +131,23 @@ object HierarchyBuilder extends LazyLogging {
     }
   }
 
+  private[this] def replaceFolderId(doc: Elem, newFolderId: Option[Int]): Elem = {
+    newFolderId.map { f =>
+      AttributeChanger.convert(doc, None, "folderId", f.toString)
+    }.getOrElse(doc)
+  }
+
   private[this] def guid(doc: Elem): Option[UUID] = {
     doc.label match {
       case "Policy" => Some(UUID.fromString(doc \ "PolicyDetail" \@ "guid"))
       case _ => None
     }
+  }
+
+  private[this] def replaceGuid(doc: Elem, newGuid: Option[UUID]): Elem = {
+    newGuid.map { guid =>
+      AttributeChanger.convert(doc, Some("PolicyDetail"), "guid", guid.toString)
+    }.getOrElse(doc)
   }
 
   private[this] def version(doc: Elem): Int = {
@@ -137,18 +165,26 @@ object HierarchyBuilder extends LazyLogging {
 
 object AttributeChanger {
 
-  def convert(doc:Node, label:String, attribName:String, newValue:String):Node = {
+  def convert(doc: Node, label: Option[String], attribName: String, newValue: String): Elem = {
     val rewrite = new RewriteRule {
-      override def transform(n: Node) = n match {
-        case label =>
-        case e @ <b>{_*}</b> => e.asInstanceOf[Elem] %
-          Attribute(null, "attr1", "200",
-            Attribute(null, "attr2", "100", Null))
+
+      def innerTransform(n: Node): Node = n match {
+        case elem @ Elem(_, label, atts, _, child @ _*) => {
+          val maybeAttrib = Option(atts(attribName))
+          maybeAttrib.map { a =>
+            elem.asInstanceOf[Elem] % Attribute(None, attribName, Text(newValue), Null) copy (child = child map innerTransform)
+          }.getOrElse(elem.asInstanceOf[Elem].copy(child = child map innerTransform))
+
+        }
+        case elem @ Elem(_, _, _, _, child @ _*) => elem.asInstanceOf[Elem].copy(child = child map innerTransform)
         case _ => n
+
       }
+
+      override def transform(n: Node) = innerTransform(n)
     }
-  
-    new RuleTransformer(rewrite).transform(doc).head
+
+    new RuleTransformer(rewrite).transform(doc).head.asInstanceOf[Elem]
   }
 }
 
@@ -164,7 +200,6 @@ object HierarchyNode {
   def newerOf(a: HierarchyNode, b: HierarchyNode) = {
     compareBy(a.version > b.version, a, b)
   }
-
 
 }
 
@@ -186,15 +221,15 @@ trait HierarchyNode extends Product {
 
 // While we build up the hierarchy ...
 private[l7] case class MutableTreeNode(
-                                    val id: Int,
-                                    val folderId: Option[Int],
-                                    val guid: Option[UUID],
-                                    val version: Int,
-                                    val name: String,
-                                    parent: Option[HierarchyNode],
-                                    val content: Elem,
-                                    val source: File,
-                                    val children: ListBuffer[HierarchyNode]) extends HierarchyNode {
+    val id: Int,
+    val folderId: Option[Int],
+    val guid: Option[UUID],
+    val version: Int,
+    val name: String,
+    parent: Option[HierarchyNode],
+    val content: Elem,
+    val source: File,
+    val children: ListBuffer[HierarchyNode]) extends HierarchyNode {
 
   def asTopLevelNode = TopLevelNode(id, guid, version, name, content, source, children.toSeq)
 }
