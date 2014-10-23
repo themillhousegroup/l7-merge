@@ -16,7 +16,8 @@ object SingleDocumentOperations {
     println(s"$newer is newer than $older")
 
     println(s"older:\n${older.content}\n\n")
-    println(s"newer:\n${newer.content}\n\n")
+
+    //    println(s"newer:\n${newer.content}\n\n")
 
     if ((newer.id == older.id)
       && (newer.guid == older.guid)
@@ -25,7 +26,7 @@ object SingleDocumentOperations {
         println("Looks like change can be merged")
       } else {
         val merged = mergeTogether(older, newer, destination.get)
-        println(s"Merged: $merged")
+        //println(s"Merged: $merged")
       }
     }
 

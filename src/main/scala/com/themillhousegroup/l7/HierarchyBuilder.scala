@@ -1,7 +1,7 @@
 package com.themillhousegroup.l7
 
 import scala.xml._
-import java.io.{ FileWriter, File }
+import java.io.{ StringWriter, FileWriter, File }
 import scala.collection.mutable.ListBuffer
 import java.util.UUID
 import com.typesafe.scalalogging.LazyLogging
@@ -36,11 +36,23 @@ object HierarchyBuilder extends LazyLogging {
     }
   }
 
+  /** Various hacks to make it look L7-originated */
   def writeTo(f: File, doc: Elem): File = {
+
+    val sr = new StringWriter()
+    XML.write(sr, doc, "UTF-8", true, null)
+    val escaped = sr.toString
+    val unescaped = escaped.replace("&quot;", "\"")
+    val withStandalone = unescaped.replace(
+      """<?xml version='1.0' encoding='UTF-8'?>""",
+      """<?xml version="1.0" encoding="UTF-8" standalone="no"?>""")
+
     val writer = new FileWriter(f)
-    XML.write(writer, doc, XML.encoding, false, null)
+    writer.write(withStandalone)
     writer.close
+
     f
+
   }
 
   def mergeTogether(older: HierarchyNode, newer: HierarchyNode, destinationFile: File): HierarchyNode = {
