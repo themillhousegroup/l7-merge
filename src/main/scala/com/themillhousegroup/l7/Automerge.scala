@@ -2,10 +2,9 @@ package com.themillhousegroup.l7
 
 import java.io.File
 import com.typesafe.scalalogging.LazyLogging
-import scala.util.{ Success, Failure, Try }
-import Failures._
-import scala.collection.mutable.ListBuffer
+import scala.util.{ Failure, Try }
 import org.apache.commons.lang3.StringUtils
+import com.themillhousegroup.l7.commands.{ VisualiserCommand, SingleDocumentComparisonCommand, SingleDocumentMergeCommand, Command }
 
 object Automerge {
   def apply(existingDirectoryName: String, newerDirectoryName: String) = {
@@ -37,13 +36,6 @@ class Automerge(val existingDir: File, val newerDir: File) extends LazyLogging {
 
 object Failures {
   def failWith(msg: String) = Failure(new IllegalArgumentException(msg))
-}
-
-abstract class Command(val name: String) {
-
-  val expectedArgs: String
-
-  def runWith(args: Seq[String])
 }
 
 object AutomergeApp extends App {

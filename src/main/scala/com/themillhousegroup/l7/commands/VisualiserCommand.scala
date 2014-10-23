@@ -1,7 +1,7 @@
 package com.themillhousegroup.l7.commands
 
 import java.io.File
-import com.themillhousegroup.l7.{ HierarchyBuilder, DirectoryHelper }
+import com.themillhousegroup.l7.{ HierarchyVisualiser, HierarchyBuilder, DirectoryHelper }
 
 object VisualiserCommand extends Command("visualise") {
 

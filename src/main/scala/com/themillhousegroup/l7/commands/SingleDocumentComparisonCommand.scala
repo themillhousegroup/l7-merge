@@ -1,7 +1,7 @@
 package com.themillhousegroup.l7.commands
 
 import java.io.File
-import com.themillhousegroup.l7.HierarchyBuilder
+import com.themillhousegroup.l7.{ SingleDocumentOperations, HierarchyBuilder }
 
 object SingleDocumentComparisonCommand extends Command("compare-one") {
 
