@@ -46,9 +46,10 @@ object HierarchyBuilder extends LazyLogging {
     val withStandalone = unescaped.replace(
       """<?xml version='1.0' encoding='UTF-8'?>""",
       """<?xml version="1.0" encoding="UTF-8" standalone="no"?>""")
+    val newlineStripped = withStandalone.replaceFirst("\\n", "")
 
     val writer = new FileWriter(f)
-    writer.write(withStandalone)
+    writer.write(newlineStripped)
     writer.close
 
     f
