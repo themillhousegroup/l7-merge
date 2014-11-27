@@ -15,7 +15,7 @@ object SingleDocumentOperations extends LazyLogging {
     val older = olderOf(left, right)
     val newer = newerOf(left, right)
 
-    logger.info(s"File: ${newer.source.getAbsolutePath}is newer than file: ${older.source.getAbsolutePath}")
+    logger.info(s"File: ${newer.source.getAbsolutePath} is newer than file: ${older.source.getAbsolutePath}")
 
     logger.debug(s"older:\n${older.content}\n\n")
 
