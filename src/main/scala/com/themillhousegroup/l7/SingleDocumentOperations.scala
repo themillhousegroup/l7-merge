@@ -5,13 +5,16 @@ import com.typesafe.scalalogging.LazyLogging
 import com.themillhousegroup.l7.commands.Command
 
 object SingleDocumentOperations extends LazyLogging {
+
+  val forceMerge = "force"
+
   import HierarchyNode._
   import HierarchyBuilder._
   def compare(left: HierarchyNode, right: HierarchyNode) = {
     merge(left, right, None)
   }
 
-  def merge(left: HierarchyNode, right: HierarchyNode, destination: Option[File] = None) = {
+  def merge(left: HierarchyNode, right: HierarchyNode, destination: Option[File] = None, options: Seq[String] = Nil) = {
     val older = olderOf(left, right)
     val newer = newerOf(left, right)
 
@@ -19,10 +22,9 @@ object SingleDocumentOperations extends LazyLogging {
 
     logger.debug(s"older:\n${older.content}\n\n")
 
-    //    println(s"newer:\n${newer.content}\n\n")
+    options.foreach(o => logger.info(s"Option '$o' supplied."))
 
-    if ((newer.id == older.id)
-      && (newer.guid == older.guid)) {
+    if (((newer.id == older.id) && (newer.guid == older.guid)) || options.contains(forceMerge)) {
       if (destination.isEmpty) { // i.e. dry run mode
         logger.info("Looks like change can be merged")
       } else {
