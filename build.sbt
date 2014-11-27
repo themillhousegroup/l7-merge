@@ -3,7 +3,7 @@ import NativePackagerKeys._
 
 name := "l7-merge"
 
-version := "0.1.0"
+version := s"${sys.props.getOrElse("build.majorMinor", "0.1")}.${sys.props.getOrElse("build.version", "SNAPSHOT")}"
 
 scalaVersion := "2.11.2"
 
