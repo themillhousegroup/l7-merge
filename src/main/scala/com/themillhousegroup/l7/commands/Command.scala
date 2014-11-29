@@ -4,5 +4,5 @@ abstract class Command(val name: String) {
 
   val expectedArgs: String
 
-  def runWith(args: Seq[String])
+  def runWith(args: Seq[String]): Unit
 }

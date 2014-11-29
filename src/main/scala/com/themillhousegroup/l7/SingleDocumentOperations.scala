@@ -6,7 +6,7 @@ import com.themillhousegroup.l7.commands.Command
 
 object SingleDocumentOperations extends LazyLogging {
 
-  val forceMerge = "force"
+  val forceMerge = "--force"
 
   import HierarchyNode._
   import HierarchyBuilder._

@@ -2,24 +2,34 @@ package com.themillhousegroup.l7.commands
 
 import java.io.File
 import com.themillhousegroup.l7.{ SingleDocumentOperations, HierarchyBuilder }
+import com.typesafe.scalalogging.LazyLogging
 
-object SingleDocumentMergeCommand extends Command("merge-one") {
+object SingleDocumentMergeCommand extends Command("merge-one") with LazyLogging {
 
   val expectedArgs = "<file1> <file2> [--force] to merge the contents of file2 into file1"
+  val optionPrefix = "--"
 
   def runWith(args: Seq[String]) = {
     if (args.size < 2) {
-      println("Usage: Provide two filenames to be merged")
+      notEnoughFiles
     } else {
-      val leftFile = new File(args(0))
-      val rightFile = new File(args(1))
+      val partition = args.partition(_.startsWith(optionPrefix))
 
-      val options = args.drop(2).map(_.substring(2)) // Cut off the '--' prefix on options
+      if (partition._2.size < 2) {
+        notEnoughFiles
+      } else {
+        val leftFile = new File(partition._2(0))
+        val rightFile = new File(partition._2(1))
 
-      for {
-        left <- HierarchyBuilder.fromFile(leftFile)
-        right <- HierarchyBuilder.fromFile(rightFile)
-      } yield (SingleDocumentOperations.merge(left, right, Some(leftFile), options))
+        for {
+          left <- HierarchyBuilder.fromFile(leftFile)
+          right <- HierarchyBuilder.fromFile(rightFile)
+        } yield (SingleDocumentOperations.merge(left, right, Some(leftFile), partition._1))
+      }
     }
+  }
+
+  private[this] def notEnoughFiles = {
+    logger.error("Usage: Provide two filenames to be merged")
   }
 }
