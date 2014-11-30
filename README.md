@@ -12,7 +12,8 @@ the "built-in" system implemented within the L7 results in very large deltas.
 
 Build the runnable app with `sbt stage`.
 
-Run it with `./target/universal/stage/bin/l7-merge`
+Run it with `./target/universal/stage/bin/l7-merge` (UNIX-like OSes) or
+`target\universal\stage\bin\l7-merge.bat` (Windows)
 and it will tell you about the available commands.
 
 
