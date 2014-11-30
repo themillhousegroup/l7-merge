@@ -6,7 +6,8 @@ import com.themillhousegroup.l7.commands.Command
 
 object SingleDocumentOperations extends LazyLogging {
 
-  val forceMerge = "--force"
+  val forceMerge = "--force"                // Merge even if the files seem "too different"
+  val onlyStructural = "--only-structural"  // Retain references to old GUIDs - i.e. changes are structural to this file
 
   import HierarchyNode._
   import HierarchyBuilder._
@@ -28,7 +29,7 @@ object SingleDocumentOperations extends LazyLogging {
       if (destination.isEmpty) { // i.e. dry run mode
         logger.info("Looks like change can be merged")
       } else {
-        val merged = mergeTogether(older, newer, destination.get)
+        val merged = mergeTogether(older, newer, destination.get, options)
         //println(s"Merged: $merged")
         logger.info(s"Merged and wrote the following to ${merged.source.getAbsolutePath}:\n${merged.content}")
       }

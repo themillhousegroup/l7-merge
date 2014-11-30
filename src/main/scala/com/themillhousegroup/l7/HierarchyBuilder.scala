@@ -37,7 +37,7 @@ object HierarchyBuilder extends LazyLogging {
     }
   }
 
-  def mergeTogether(older: HierarchyNode, newer: HierarchyNode, destinationFile: File): HierarchyNode = {
+  def mergeTogether(older: HierarchyNode, newer: HierarchyNode, destinationFile: File, options:Seq[String] = Nil): HierarchyNode = {
 
     val updatedContent =
       replaceId(
