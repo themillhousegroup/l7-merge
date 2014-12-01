@@ -6,8 +6,8 @@ import com.themillhousegroup.l7.commands.Command
 
 object SingleDocumentOperations extends LazyLogging {
 
-  val forceMerge = "--force"                // Merge even if the files seem "too different"
-  val onlyStructural = "--only-structural"  // Retain references to old GUIDs - i.e. changes are structural to this file
+  val forceMerge = "--force" // Merge even if the files seem "too different"
+  val onlyStructural = "--only-structural" // Retain references to old GUIDs - i.e. changes are structural to this file
 
   import HierarchyNode._
   import HierarchyBuilder._
@@ -31,7 +31,7 @@ object SingleDocumentOperations extends LazyLogging {
       } else {
         val merged = mergeTogether(older, newer, destination.get, options)
         //println(s"Merged: $merged")
-        logger.info(s"Merged and wrote the following to ${merged.source.getAbsolutePath}:\n${merged.content}")
+        logger.debug(s"Merged and wrote the following to ${merged.source.getAbsolutePath}:\n${merged.content}")
       }
     } else {
       logger.error(s"Files seem to be referring to different things. Details follow (older, then newer):")

@@ -6,7 +6,11 @@ import com.typesafe.scalalogging.LazyLogging
 
 object SingleDocumentMergeCommand extends Command("merge-one") with LazyLogging {
 
-  val expectedArgs = "<file1> <file2> [--force] to merge the contents of file2 into file1"
+  val expectedArgs =
+    "<file1> <file2> [merge-options] to merge the contents of file2 into file1\n" +
+      "  Where [merge-options] are:\n" +
+      "    --force              Merge even if the files seem very different\n" +
+      "    --only-structural    Retain the 'old' GUID references if any\n"
   val optionPrefix = "--"
 
   def runWith(args: Seq[String]) = {

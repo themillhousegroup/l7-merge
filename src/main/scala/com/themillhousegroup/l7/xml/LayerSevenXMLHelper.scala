@@ -1,9 +1,10 @@
 package com.themillhousegroup.l7.xml
 
 import java.io.{ FileWriter, StringWriter, File }
-import scala.xml.{ Node, NodeSeq, XML, Elem }
+import scala.xml._
 import java.util.UUID
 import org.apache.commons.lang3.{ StringEscapeUtils, StringUtils }
+import scala.Some
 
 /**
  * Helper object specifically for working with the Layer7 dialect of XML file
@@ -44,6 +45,10 @@ object LayerSevenXMLHelper {
     newGuid.map { guid =>
       AttributeChanger.convert(doc, Some("PolicyDetail"), "guid", guid.toString)
     }.getOrElse(doc)
+  }
+
+  def replacePolicyGuid(doc: Elem, existingGuid: String, replacementGuid: String): Elem = {
+    AttributeChanger.convert(doc, Some("PolicyGuid"), "stringValue", existingGuid, replacementGuid)
   }
 
   def version(doc: Elem): Int = {
@@ -89,5 +94,18 @@ object LayerSevenXMLHelper {
     val txt = resourceNode.text
     val unescaped = StringEscapeUtils.unescapeXml(txt)
     XML.loadString(unescaped)
+  }
+
+  /** Encodes all the children of this resource, returning a new version of resourceNode */
+  def encodeChildren(resourceNode: Node): Elem = {
+    val encodedChildren = resourceNode.nonEmptyChildren.map(child => Text(StringEscapeUtils.escapeXml(child.toString)))
+    resourceNode.asInstanceOf[Elem].copy(child = encodedChildren)
+  }
+
+  /** Stuffs the (encoded) content Elem into the resourceNode, returning the new result */
+  def encodeResource(resourceNode: Node, content: Elem): Elem = {
+    val txt = content.toString
+    val escaped = StringEscapeUtils.escapeXml(txt)
+    resourceNode.asInstanceOf[Elem].copy(child = Seq(Text("&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n" + txt + "\n")))
   }
 }

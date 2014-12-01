@@ -6,7 +6,7 @@ import scala.collection.mutable.ListBuffer
 import java.util.UUID
 import com.typesafe.scalalogging.LazyLogging
 import scala.Some
-import com.themillhousegroup.l7.xml.AttributeChanger
+import com.themillhousegroup.l7.xml.{ NodeChanger, AttributeChanger }
 import com.themillhousegroup.l7.xml.LayerSevenXMLHelper._
 
 /** Represents the tree structure of Layer7 XML snippets */
@@ -37,12 +37,43 @@ object HierarchyBuilder extends LazyLogging {
     }
   }
 
-  def mergeTogether(older: HierarchyNode, newer: HierarchyNode, destinationFile: File, options:Seq[String] = Nil): HierarchyNode = {
+  private def retainOldReferences(older: Elem, newer: Elem): Elem = {
+    val olderResource = extractResource((older \\ "Resources" \\ "Resource").head)
+    val olderIncludes = olderResource \\ "PolicyGuid"
+    val newerResourceNode = (newer \\ "Resources" \\ "Resource").head
+    val newerResource = extractResource(newerResourceNode)
+    val newerIncludes = newerResource \\ "PolicyGuid"
+
+    if (olderIncludes.size != newerIncludes.size) {
+      throw new IllegalStateException(s"Can only perform a structural-only merge if the number of references is the same. Old: ${olderIncludes.size} != New: ${newerIncludes.size}")
+    }
+
+    println(s"NeverRes:\n$newerResourceNode")
+
+    var hybrid = newerResource
+
+    olderIncludes.zip(newerIncludes).foreach {
+      case (olderNode, newerNode) =>
+        val oldGuid = olderNode \@ "stringValue"
+        val newGuid = newerNode \@ "stringValue"
+        hybrid = replacePolicyGuid(hybrid, newGuid, oldGuid)
+    }
+
+    val er = encodeResource(newerResourceNode, hybrid)
+
+    println(er)
+
+    NodeChanger.convertNodeAt(newer, (newer \\ "Resources" \\ "Resource"), er)
+  }
+
+  def mergeTogether(older: HierarchyNode, newer: HierarchyNode, destinationFile: File, options: Seq[String] = Nil): HierarchyNode = {
+
+    val innerContent = options.find(SingleDocumentOperations.onlyStructural == _).fold(newer.content)(_ => retainOldReferences(older.content, newer.content))
 
     val updatedContent =
       replaceId(
         replaceFolderId(
-          replaceGuid(newer.content, older.guid),
+          replaceGuid(innerContent, older.guid),
           older.folderId),
         older.id)
 
@@ -63,7 +94,7 @@ object HierarchyBuilder extends LazyLogging {
       newChildren
     )
 
-    println(updatedContent)
+    //  println(updatedContent)
 
     merged
   }
