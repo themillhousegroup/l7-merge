@@ -1,8 +1,9 @@
 package com.themillhousegroup.l7.xml
 
 import java.io.{ FileWriter, StringWriter, File }
-import scala.xml.{ NodeSeq, XML, Elem }
+import scala.xml.{ Node, NodeSeq, XML, Elem }
 import java.util.UUID
+import org.apache.commons.lang3.{ StringEscapeUtils, StringUtils }
 
 /**
  * Helper object specifically for working with the Layer7 dialect of XML file
@@ -78,5 +79,15 @@ object LayerSevenXMLHelper {
     writer.close
 
     f
+  }
+
+  /**
+   * The Layer7 "embeds" resources by encoding them into the text of a l7p:Resource.
+   * This function pulls out this content as a regular Elem
+   */
+  def extractResource(resourceNode: Node): Elem = {
+    val txt = resourceNode.text
+    val unescaped = StringEscapeUtils.unescapeXml(txt)
+    XML.loadString(unescaped)
   }
 }
