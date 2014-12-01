@@ -21,5 +21,16 @@ class LayerSevenXMLHelperSpec extends Specification {
 
       result.child.mkString must not contain ("<")
     }
+
+    "Allow a node to be converted as the child of another node" in {
+
+      val newParent = <grandparent></grandparent>
+
+      val result = LayerSevenXMLHelper.encodeResource(newParent, sourceElem)
+
+      result \\ "parent" must haveSize(0)
+
+      result.text must contain("Original Second")
+    }
   }
 }

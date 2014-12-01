@@ -48,8 +48,6 @@ object HierarchyBuilder extends LazyLogging {
       throw new IllegalStateException(s"Can only perform a structural-only merge if the number of references is the same. Old: ${olderIncludes.size} != New: ${newerIncludes.size}")
     }
 
-    println(s"NeverRes:\n$newerResourceNode")
-
     var hybrid = newerResource
 
     olderIncludes.zip(newerIncludes).foreach {
@@ -59,11 +57,7 @@ object HierarchyBuilder extends LazyLogging {
         hybrid = replacePolicyGuid(hybrid, newGuid, oldGuid)
     }
 
-    val er = encodeResource(newerResourceNode, hybrid)
-
-    println(er)
-
-    NodeChanger.convertNodeAt(newer, (newer \\ "Resources" \\ "Resource"), er)
+    NodeChanger.convertNodeAt(newer, (newer \\ "Resources" \\ "Resource"), encodeResource(newerResourceNode, hybrid))
   }
 
   def mergeTogether(older: HierarchyNode, newer: HierarchyNode, destinationFile: File, options: Seq[String] = Nil): HierarchyNode = {
@@ -93,8 +87,6 @@ object HierarchyBuilder extends LazyLogging {
       destinationFile,
       newChildren
     )
-
-    //  println(updatedContent)
 
     merged
   }
