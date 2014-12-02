@@ -7,7 +7,7 @@ object VisualiserCommand extends Command("visualise") {
 
   val expectedArgs = "[directory] to visualise the contents of a directory"
 
-  def runWith(args: Seq[String]) = {
+  def runWith(args: Seq[String], options: Seq[String]) = {
     if (args.isEmpty) {
       println("Usage: Provide the directory of Layer7 XML files to visualise")
     } else {

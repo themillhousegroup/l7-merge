@@ -12,25 +12,18 @@ object SingleDocumentMergeCommand extends Command("merge-one") with LazyLogging 
       "    --force              Merge even if the files seem very different\n" +
       "    --only-structural    Retain the 'old' GUID references if any\n" +
       "    --version-aware      Use the version numbers in the files to work out newer vs older\n"
-  val optionPrefix = "--"
 
-  def runWith(args: Seq[String]) = {
+  def runWith(args: Seq[String], options: Seq[String]) = {
     if (args.size < 2) {
       notEnoughFiles
     } else {
-      val partition = args.partition(_.startsWith(optionPrefix))
+      val leftFile = new File(args(0))
+      val rightFile = new File(args(1))
 
-      if (partition._2.size < 2) {
-        notEnoughFiles
-      } else {
-        val leftFile = new File(partition._2(0))
-        val rightFile = new File(partition._2(1))
-
-        for {
-          left <- HierarchyBuilder.fromFile(leftFile)
-          right <- HierarchyBuilder.fromFile(rightFile)
-        } yield (SingleDocumentOperations.merge(left, right, Some(leftFile), partition._1))
-      }
+      for {
+        left <- HierarchyBuilder.fromFile(leftFile)
+        right <- HierarchyBuilder.fromFile(rightFile)
+      } yield (SingleDocumentOperations.merge(left, right, Some(leftFile), options))
     }
   }
 

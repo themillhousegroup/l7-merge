@@ -46,6 +46,7 @@ object AutomergeApp extends App {
     VisualiserCommand)
 
   private val typoThreshold = 3
+  val optionPrefix = "--"
 
   if (args.isEmpty) {
     println("Usage: Provide a command and optional args")
@@ -57,7 +58,8 @@ object AutomergeApp extends App {
   } else {
     val desiredCommand = args.head
     knownCommands.find(desiredCommand == _.name).map { cmd =>
-      cmd.runWith(args.tail)
+      val optionsAndArgs = args.tail.partition(_.startsWith(optionPrefix))
+      cmd.runWith(optionsAndArgs._2, optionsAndArgs._1)
     }.orElse {
       val suggestions = knownCommands.filter { c =>
         val dist = StringUtils.getLevenshteinDistance(c.name, desiredCommand)

@@ -7,7 +7,7 @@ object SingleDocumentComparisonCommand extends Command("compare-one") {
 
   val expectedArgs = "[file1] [file2] to compare the contents of two files"
 
-  def runWith(args: Seq[String]) = {
+  def runWith(args: Seq[String], options: Seq[String]) = {
     if (args.size != 2) {
       println("Usage: Provide two filenames to be compared")
     } else {
