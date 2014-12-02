@@ -5,6 +5,7 @@ import scala.xml._
 import java.util.UUID
 import org.apache.commons.lang3.{ StringEscapeUtils, StringUtils }
 import scala.Some
+import scala.xml.parsing.ConstructingParser
 
 /**
  * Helper object specifically for working with the Layer7 dialect of XML file
@@ -93,7 +94,11 @@ object LayerSevenXMLHelper {
   def extractResource(resourceNode: Node): Elem = {
     val txt = resourceNode.text
     val unescaped = StringEscapeUtils.unescapeXml(txt)
-    XML.loadString(unescaped)
+
+    // Can't just use XML.loadString as it eats CDATA blocks; http://blog.markfeeney.com/2011/03/scala-xml-gotchas.html
+    ConstructingParser.fromSource(
+      scala.io.Source.fromString(unescaped),
+      true).document.docElem.asInstanceOf[Elem]
   }
 
   /** Encodes all the children of this resource, returning a new version of resourceNode */
@@ -105,7 +110,6 @@ object LayerSevenXMLHelper {
   /** Stuffs the (encoded) content Elem into the resourceNode, returning the new result */
   def encodeResource(resourceNode: Node, content: Elem): Elem = {
     val txt = content.toString
-    val escaped = StringEscapeUtils.escapeXml(txt)
     resourceNode.asInstanceOf[Elem].copy(child = Seq(Text("&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n" + txt + "\n")))
   }
 }
