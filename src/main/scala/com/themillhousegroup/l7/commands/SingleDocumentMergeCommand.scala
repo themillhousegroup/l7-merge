@@ -10,7 +10,8 @@ object SingleDocumentMergeCommand extends Command("merge-one") with LazyLogging 
     "<file1> <file2> [merge-options] to merge the contents of file2 into file1\n" +
       "  Where [merge-options] are:\n" +
       "    --force              Merge even if the files seem very different\n" +
-      "    --only-structural    Retain the 'old' GUID references if any\n"
+      "    --only-structural    Retain the 'old' GUID references if any\n" +
+      "    --version-aware      Use the version numbers in the files to work out newer vs older\n"
   val optionPrefix = "--"
 
   def runWith(args: Seq[String]) = {

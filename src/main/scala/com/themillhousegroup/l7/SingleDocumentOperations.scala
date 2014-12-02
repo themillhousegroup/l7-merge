@@ -9,6 +9,7 @@ object SingleDocumentOperations extends LazyLogging {
   object Options {
     val forceMerge = "--force" // Merge even if the files seem "too different"
     val onlyStructural = "--only-structural" // Retain references to old GUIDs - i.e. changes are structural to this file
+    val versionAware = "--version-aware" // Inspect for version numbers and use those to determine the older/newer file
   }
 
   import HierarchyNode._
@@ -25,8 +26,6 @@ object SingleDocumentOperations extends LazyLogging {
     logger.info(s"File: ${newer.source.getAbsolutePath} is newer than file: ${older.source.getAbsolutePath}")
 
     logger.debug(s"older:\n${older.content}\n\n")
-
-    options.foreach(o => logger.info(s"Option '$o' supplied."))
 
     if (((newer.id == older.id) && (newer.guid == older.guid)) || options.contains(forceMerge)) {
       if (destination.isEmpty) { // i.e. dry run mode
