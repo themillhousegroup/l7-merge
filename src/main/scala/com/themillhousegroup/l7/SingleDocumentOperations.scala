@@ -6,11 +6,14 @@ import com.themillhousegroup.l7.commands.Command
 
 object SingleDocumentOperations extends LazyLogging {
 
-  val forceMerge = "--force" // Merge even if the files seem "too different"
-  val onlyStructural = "--only-structural" // Retain references to old GUIDs - i.e. changes are structural to this file
+  object Options {
+    val forceMerge = "--force" // Merge even if the files seem "too different"
+    val onlyStructural = "--only-structural" // Retain references to old GUIDs - i.e. changes are structural to this file
+  }
 
   import HierarchyNode._
   import HierarchyBuilder._
+  import Options._
   def compare(left: HierarchyNode, right: HierarchyNode) = {
     merge(left, right, None)
   }

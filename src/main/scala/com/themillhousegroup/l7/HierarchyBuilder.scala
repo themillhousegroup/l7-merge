@@ -62,7 +62,7 @@ object HierarchyBuilder extends LazyLogging {
 
   def mergeTogether(older: HierarchyNode, newer: HierarchyNode, destinationFile: File, options: Seq[String] = Nil): HierarchyNode = {
 
-    val innerContent = options.find(SingleDocumentOperations.onlyStructural == _).fold(newer.content)(_ => retainOldReferences(older.content, newer.content))
+    val innerContent = options.find(SingleDocumentOperations.Options.onlyStructural == _).fold(newer.content)(_ => retainOldReferences(older.content, newer.content))
 
     val updatedContent =
       replaceId(
