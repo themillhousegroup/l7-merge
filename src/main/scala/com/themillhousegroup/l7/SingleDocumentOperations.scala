@@ -20,12 +20,11 @@ object SingleDocumentOperations extends LazyLogging {
   }
 
   def merge(left: HierarchyNode, right: HierarchyNode, destination: Option[File] = None, options: Seq[String] = Nil) = {
-    val older = olderOf(left, right)
-    val newer = newerOf(left, right)
 
-    logger.info(s"File: ${newer.source.getAbsolutePath} is newer than file: ${older.source.getAbsolutePath}")
+    val older = if (options.contains(versionAware)) olderOf(left, right) else left
+    val newer = if (options.contains(versionAware)) newerOf(left, right) else right
 
-    logger.debug(s"older:\n${older.content}\n\n")
+    logger.info(s"Contents of 'newer' file: ${newer.source.getAbsolutePath} will be merged into 'older' file: ${older.source.getAbsolutePath}")
 
     if (((newer.id == older.id) && (newer.guid == older.guid)) || options.contains(forceMerge)) {
       if (destination.isEmpty) { // i.e. dry run mode
