@@ -76,13 +76,13 @@ object SingleDocumentOperations extends LazyLogging {
       }
 
     val updatedContent =
-      replaceVersion(
-        replaceId(
-          replaceFolderId(
+      replaceId(
+        replaceFolderId(
+          replaceVersion(
             replaceGuid(innerContent, older.guid),
-            older.folderId),
-          older.id),
-        desiredVersion)
+            desiredVersion),
+          older.folderId),
+        older.id)
 
     writeTo(destinationFile, updatedContent)
 

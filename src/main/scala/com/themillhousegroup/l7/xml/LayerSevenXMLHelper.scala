@@ -12,6 +12,9 @@ import scala.xml.parsing.ConstructingParser
  */
 object LayerSevenXMLHelper {
 
+  val xmlPreamble = """<?xml version='1.0' encoding='UTF-8'?>"""
+  val xmlPreambleDoubleQuoted = xmlPreamble.replace("'", "\"")
+
   def id(doc: Elem): Int = {
     doc \@ "id" toInt
   }
@@ -80,7 +83,7 @@ object LayerSevenXMLHelper {
     val escaped = sr.toString
     val unescaped = escaped.replace("&quot;", "\"")
     val withStandalone = unescaped.replace(
-      """<?xml version='1.0' encoding='UTF-8'?>""",
+      xmlPreamble,
       """<?xml version="1.0" encoding="UTF-8" standalone="no"?>""")
     val newlineStripped = withStandalone.replaceFirst("\\n", "")
 
@@ -114,6 +117,6 @@ object LayerSevenXMLHelper {
   /** Stuffs the (encoded) content Elem into the resourceNode, returning the new result */
   def encodeResource(resourceNode: Node, content: Elem): Elem = {
     val txt = content.toString
-    resourceNode.asInstanceOf[Elem].copy(child = Seq(Text("&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;\n" + txt + "\n")))
+    resourceNode.asInstanceOf[Elem].copy(child = Seq(Text(xmlPreambleDoubleQuoted + "\n" + txt + "\n")))
   }
 }
