@@ -8,6 +8,7 @@ import com.typesafe.scalalogging.LazyLogging
 import scala.Some
 import com.themillhousegroup.l7.xml.{ NodeChanger, AttributeChanger }
 import com.themillhousegroup.l7.xml.LayerSevenXMLHelper._
+import com.themillhousegroup.l7.commands.SingleDocumentMergeCommand
 
 /** Represents the tree structure of Layer7 XML snippets */
 object HierarchyBuilder extends LazyLogging {
@@ -62,7 +63,7 @@ object HierarchyBuilder extends LazyLogging {
 
   def mergeTogether(older: HierarchyNode, newer: HierarchyNode, destinationFile: File, options: Seq[String] = Nil): HierarchyNode = {
 
-    val innerContent = options.find(SingleDocumentOperations.Options.onlyStructural == _).fold(newer.content)(_ => retainOldReferences(older.content, newer.content))
+    val innerContent = options.find(SingleDocumentMergeCommand.Options.onlyStructural == _).fold(newer.content)(_ => retainOldReferences(older.content, newer.content))
 
     val updatedContent =
       replaceId(
