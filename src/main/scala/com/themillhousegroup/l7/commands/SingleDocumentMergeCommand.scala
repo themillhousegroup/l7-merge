@@ -14,14 +14,14 @@ object SingleDocumentMergeCommand extends Command("merge-one") with LazyLogging 
     val forceMerge = "--force"
     val onlyStructural = "--only-structural"
     val versionAware = "--version-aware"
-    val retainOldVersion = "--retain-old-version"
+    val retainOldVersions = "--retain-old-versions"
   }
 
   lazy val options = Map(
     Options.forceMerge -> "Merge even if the files seem 'too different'",
     Options.onlyStructural -> "Retain references to old GUIDs - i.e. changes are structural to this file",
     Options.versionAware -> "Inspect for version numbers and use those to determine the older/newer file",
-    Options.retainOldVersion -> "Keep the 'version' from the 'older' file (minimises diffs)"
+    Options.retainOldVersions -> "Keep the 'version' numbers from the 'older' file (minimises diffs)"
   )
 
   lazy val renderedOptions = options.map { case (k, v) => StringUtils.rightPad(k, 24) + v }.mkString("\n")

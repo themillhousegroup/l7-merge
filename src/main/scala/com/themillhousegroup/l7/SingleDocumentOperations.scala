@@ -68,18 +68,29 @@ object SingleDocumentOperations extends LazyLogging {
     val innerContent = options.find(SingleDocumentMergeCommand.Options.onlyStructural == _).fold(newer.content)(_ => retainOldReferences(older.content, newer.content))
 
     val desiredVersion =
-      if (options.contains(SingleDocumentMergeCommand.Options.retainOldVersion)) {
+      if (options.contains(SingleDocumentMergeCommand.Options.retainOldVersions)) {
         logger.info(s"Retaining 'older' version ${older.version}, not using 'newer': ${newer.version}")
         older.version
       } else {
         newer.version
       }
 
+    val desiredRevision =
+      if (options.contains(SingleDocumentMergeCommand.Options.retainOldVersions)) {
+        val oldRevision = policyRevisionOf((older.content \\ "ServiceDetail").head).get
+        logger.info(s"Retaining 'older' policy revision ${oldRevision}")
+        oldRevision
+      } else {
+        policyRevisionOf((newer.content \\ "ServiceDetail").head).get
+      }
+
     val updatedContent =
       replaceId(
         replaceFolderId(
           replaceVersion(
-            replaceGuid(innerContent, older.guid),
+            replacePolicyRevision(
+              replaceGuid(innerContent, older.guid),
+              desiredRevision),
             desiredVersion),
           older.folderId),
         older.id)

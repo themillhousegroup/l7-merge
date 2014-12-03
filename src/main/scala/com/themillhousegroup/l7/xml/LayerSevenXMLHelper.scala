@@ -63,6 +63,25 @@ object LayerSevenXMLHelper {
     AttributeChanger.convert(doc, None, "version", newVersion.toString)
   }
 
+  def policyRevisionOf(versionedThing: Node): Option[Int] = {
+    val properties = (versionedThing \\ "Properties" \\ "Property")
+    val maybeRevisionProperty = thatHasAttributeValue(properties, "key", "policyRevision")
+    maybeRevisionProperty.map(prop => (prop \\ "LongValue").head.text.toInt)
+  }
+
+  def replacePolicyRevision(doc: Elem, newRevision: Int): Elem = {
+    val properties = (doc \\ "ServiceDetail" \\ "Properties" \\ "Property")
+    val targetNode = (thatHasAttributeValue(properties, "key", "policyRevision").get \\ "LongValue").head.asInstanceOf[Elem]
+    val newTarget = targetNode.copy(child = Seq(Text(newRevision.toString)))
+    NodeChanger.convertNodeAt(doc, targetNode, newTarget)
+  }
+
+  def thatHasAttributeValue(nodes: Seq[Node], attName: String, attValue: String): Option[Node] = {
+    nodes.find { node =>
+      attValue == node \@ attName
+    }
+  }
+
   def name(doc: Elem): String = {
     doc.label match {
       case "Service" => (doc \ "ServiceDetail" \ "Name").head.text
