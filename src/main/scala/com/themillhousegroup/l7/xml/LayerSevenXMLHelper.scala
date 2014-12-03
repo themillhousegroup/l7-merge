@@ -63,8 +63,8 @@ object LayerSevenXMLHelper {
     AttributeChanger.convert(doc, None, "version", newVersion.toString)
   }
 
-  def policyRevisionOf(versionedThing: Node): Option[Int] = {
-    val properties = (versionedThing \\ "Properties" \\ "Property")
+  def serviceDetailPolicyRevision(doc: Elem): Option[Int] = {
+    val properties = (doc \\ "ServiceDetail" \\ "Properties" \\ "Property")
     val maybeRevisionProperty = thatHasAttributeValue(properties, "key", "policyRevision")
     maybeRevisionProperty.map(prop => (prop \\ "LongValue").head.text.toInt)
   }
@@ -74,6 +74,17 @@ object LayerSevenXMLHelper {
     val targetNode = (thatHasAttributeValue(properties, "key", "policyRevision").get \\ "LongValue").head.asInstanceOf[Elem]
     val newTarget = targetNode.copy(child = Seq(Text(newRevision.toString)))
     NodeChanger.convertNodeAt(doc, targetNode, newTarget)
+  }
+
+  def resourceVersion(doc: Elem): Option[Int] = {
+    val firstResource = (doc \\ "Resources" \\ "Resource").headOption
+    firstResource.map(_ \@ "version" toInt)
+  }
+
+  def replaceResourceVersion(doc: Elem, newVersion: Int): Elem = {
+    val firstResource = (doc \\ "Resources" \\ "Resource").head
+    val newResource = AttributeChanger.convert(firstResource, Some("Resource"), "version", newVersion.toString)
+    NodeChanger.convertNodeAt(doc, (doc \\ "Resources" \\ "Resource"), newResource)
   }
 
   def thatHasAttributeValue(nodes: Seq[Node], attName: String, attValue: String): Option[Node] = {
