@@ -2,12 +2,15 @@ package com.themillhousegroup.l7
 
 import java.io.File
 import com.typesafe.scalalogging.LazyLogging
-import com.themillhousegroup.l7.commands.Command
+import com.themillhousegroup.l7.commands.SingleDocumentMergeCommand
+import scala.xml.Elem
+import com.themillhousegroup.l7.xml.LayerSevenXMLHelper._
+import com.themillhousegroup.l7.xml.NodeChanger
+import scala.collection.mutable.ListBuffer
 
 object SingleDocumentOperations extends LazyLogging {
 
   import HierarchyNode._
-  import HierarchyBuilder._
   import com.themillhousegroup.l7.commands.SingleDocumentMergeCommand.Options._
   def compare(left: HierarchyNode, right: HierarchyNode) = {
     merge(left, right, None)
@@ -36,5 +39,60 @@ object SingleDocumentOperations extends LazyLogging {
     }
 
   }
+
+  private def retainOldReferences(older: Elem, newer: Elem): Elem = {
+    val olderResource = extractResource((older \\ "Resources" \\ "Resource").head)
+    val olderIncludes = olderResource \\ "PolicyGuid"
+    val newerResourceNode = (newer \\ "Resources" \\ "Resource").head
+    val newerResource = extractResource(newerResourceNode)
+    val newerIncludes = newerResource \\ "PolicyGuid"
+
+    if (olderIncludes.size != newerIncludes.size) {
+      throw new IllegalStateException(s"Can only perform a structural-only merge if the number of references is the same. Old: ${olderIncludes.size} != New: ${newerIncludes.size}")
+    }
+
+    var hybrid = newerResource
+
+    olderIncludes.zip(newerIncludes).foreach {
+      case (olderNode, newerNode) =>
+        val oldGuid = olderNode \@ "stringValue"
+        val newGuid = newerNode \@ "stringValue"
+        hybrid = replacePolicyGuid(hybrid, newGuid, oldGuid)
+    }
+
+    NodeChanger.convertNodeAt(newer, (newer \\ "Resources" \\ "Resource"), encodeResource(newerResourceNode, hybrid))
+  }
+
+  def mergeTogether(older: HierarchyNode, newer: HierarchyNode, destinationFile: File, options: Seq[String] = Nil): HierarchyNode = {
+
+    val innerContent = options.find(SingleDocumentMergeCommand.Options.onlyStructural == _).fold(newer.content)(_ => retainOldReferences(older.content, newer.content))
+
+    val updatedContent =
+      replaceId(
+        replaceFolderId(
+          replaceGuid(innerContent, older.guid),
+          older.folderId),
+        older.id)
+
+    writeTo(destinationFile, updatedContent)
+
+    val newChildren = ListBuffer[HierarchyNode]()
+    newChildren.insertAll(0, newer.children)
+
+    val merged = MutableTreeNode(
+      older.id,
+      older.folderId,
+      older.guid,
+      newer.version,
+      newer.name,
+      older.parent,
+      updatedContent,
+      destinationFile,
+      newChildren
+    )
+
+    merged
+  }
+
 }
 
