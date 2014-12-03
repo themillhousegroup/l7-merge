@@ -67,12 +67,22 @@ object SingleDocumentOperations extends LazyLogging {
 
     val innerContent = options.find(SingleDocumentMergeCommand.Options.onlyStructural == _).fold(newer.content)(_ => retainOldReferences(older.content, newer.content))
 
+    val desiredVersion =
+      if (options.contains(SingleDocumentMergeCommand.Options.retainOldVersion)) {
+        logger.info(s"Retaining 'older' version ${older.version}, not using 'newer': ${newer.version}")
+        older.version
+      } else {
+        newer.version
+      }
+
     val updatedContent =
-      replaceId(
-        replaceFolderId(
-          replaceGuid(innerContent, older.guid),
-          older.folderId),
-        older.id)
+      replaceVersion(
+        replaceId(
+          replaceFolderId(
+            replaceGuid(innerContent, older.guid),
+            older.folderId),
+          older.id),
+        desiredVersion)
 
     writeTo(destinationFile, updatedContent)
 
@@ -83,7 +93,7 @@ object SingleDocumentOperations extends LazyLogging {
       older.id,
       older.folderId,
       older.guid,
-      newer.version,
+      desiredVersion,
       newer.name,
       older.parent,
       updatedContent,

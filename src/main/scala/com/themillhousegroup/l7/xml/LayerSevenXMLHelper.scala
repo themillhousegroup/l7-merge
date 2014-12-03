@@ -56,6 +56,10 @@ object LayerSevenXMLHelper {
     doc \@ "version" toInt
   }
 
+  def replaceVersion(doc: Elem, newVersion: Int): Elem = {
+    AttributeChanger.convert(doc, None, "version", newVersion.toString)
+  }
+
   def name(doc: Elem): String = {
     doc.label match {
       case "Service" => (doc \ "ServiceDetail" \ "Name").head.text
