@@ -28,7 +28,16 @@ trait CommandProcessor {
 
   private def runCommandWithArgs(cmd: Command, args: Seq[String]) = {
     val optionsAndArgs = args.partition(_.startsWith(optionPrefix))
-    cmd.runWith(optionsAndArgs._2, optionsAndArgs._1)
+
+    val options = optionsAndArgs._1
+
+    options.toSet.diff(cmd.options.keySet).fold {
+      cmd.runWith(optionsAndArgs._2, options)
+    } {
+      case (acc, o) =>
+        println(s"Unknown option '$o'")
+        o
+    }
   }
 
   private def suggestCommands(desiredCommand: String) = {
