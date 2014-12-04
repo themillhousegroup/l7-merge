@@ -2,9 +2,9 @@ package com.themillhousegroup.l7
 
 import java.io.File
 import com.typesafe.scalalogging.LazyLogging
-import scala.util.{ Failure, Try }
-import org.apache.commons.lang3.StringUtils
-import com.themillhousegroup.l7.commands.{ VisualiserCommand, SingleDocumentComparisonCommand, SingleDocumentMergeCommand, Command }
+import scala.util.Try
+import com.themillhousegroup.l7.commands._
+import scala.util.Failure
 
 object Automerge {
   def apply(existingDirectoryName: String, newerDirectoryName: String) = {
@@ -49,41 +49,6 @@ object AutomergeApp extends App with CommandProcessor {
     displayCommands
   } else {
     runCommand(args)
-  }
-}
-
-trait CommandProcessor {
-  val knownCommands: Seq[Command]
-  val optionPrefix = "--"
-  val typoThreshold = 3
-
-  def displayCommands = {
-    println("Usage: Provide a command and optional args")
-    println("Available commands are:\n")
-    knownCommands.foreach { cmd =>
-      println(s"${cmd.name} ${cmd.expectedArgs}")
-    }
-    println("\n")
-  }
-
-  def runCommand(args: Seq[String]) = {
-    val desiredCommand = args.head
-    knownCommands.find(desiredCommand == _.name).map { cmd =>
-      val optionsAndArgs = args.tail.partition(_.startsWith(optionPrefix))
-      cmd.runWith(optionsAndArgs._2, optionsAndArgs._1)
-    }.orElse {
-      val suggestions = knownCommands.filter { c =>
-        val dist = StringUtils.getLevenshteinDistance(c.name, desiredCommand)
-        dist < typoThreshold
-      }
-      if (suggestions.isEmpty) {
-        println(s"Unknown command '$desiredCommand'")
-      } else {
-        println(s"Did you mean:")
-        println(suggestions.map(_.name).mkString("  ", "\n", ""))
-      }
-      None
-    }
   }
 }
 
