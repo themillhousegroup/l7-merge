@@ -17,7 +17,7 @@ object SingleDocumentMergeCommand extends Command("merge-one") with LazyLogging 
     val retainOldVersions = "--retain-old-versions"
   }
 
-  lazy val options = Map(
+  override val options = Map(
     Options.forceMerge -> "Merge even if the files seem 'too different'",
     Options.onlyStructural -> "Retain references to old GUIDs - i.e. changes are structural to this file",
     Options.versionAware -> "Inspect for version numbers and use those to determine the older/newer file",
