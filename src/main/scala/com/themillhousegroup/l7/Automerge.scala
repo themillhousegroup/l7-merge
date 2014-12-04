@@ -38,24 +38,35 @@ object Failures {
   def failWith(msg: String) = Failure(new IllegalArgumentException(msg))
 }
 
-object AutomergeApp extends App {
+object AutomergeApp extends App with CommandProcessor {
 
-  private lazy val knownCommands = Seq[Command](
+  val knownCommands = Seq[Command](
     SingleDocumentComparisonCommand,
     SingleDocumentMergeCommand,
     VisualiserCommand)
 
-  private val typoThreshold = 3
-  val optionPrefix = "--"
-
   if (args.isEmpty) {
+    displayCommands
+  } else {
+    runCommand(args)
+  }
+}
+
+trait CommandProcessor {
+  val knownCommands: Seq[Command]
+  val optionPrefix = "--"
+  val typoThreshold = 3
+
+  def displayCommands = {
     println("Usage: Provide a command and optional args")
     println("Available commands are:\n")
     knownCommands.foreach { cmd =>
       println(s"${cmd.name} ${cmd.expectedArgs}")
     }
     println("\n")
-  } else {
+  }
+
+  def runCommand(args: Seq[String]) = {
     val desiredCommand = args.head
     knownCommands.find(desiredCommand == _.name).map { cmd =>
       val optionsAndArgs = args.tail.partition(_.startsWith(optionPrefix))
