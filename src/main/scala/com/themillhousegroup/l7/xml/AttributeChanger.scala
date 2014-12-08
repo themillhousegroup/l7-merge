@@ -33,7 +33,7 @@ object AttributeChanger {
     val rewrite = new RewriteRule {
 
       def innerTransform(n: Node): Node = n match {
-        case elem @ Elem(_, label, atts, _, child @ _*) => {
+        case elem @ Elem(_, lbl, atts, _, child @ _*) if label.isEmpty || label.contains(lbl) => {
           val maybeAttrib: Option[Seq[Node]] = Option(atts(attribName))
           maybeAttrib.filter(attribs => attribs.exists(_.text == oldValue)).map { a =>
             elem.asInstanceOf[Elem] % Attribute(None, attribName, Text(newValue), Null) copy (child = child map innerTransform)
