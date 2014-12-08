@@ -5,9 +5,9 @@ import scala.xml.transform.{ RuleTransformer, RewriteRule }
 
 object NodeChanger {
 
-  def convertNodeAt(doc: Node, xPathExpression: => Seq[Node], newValue: Elem): Elem = {
-
-    val rewrite = new RewriteRule {
+  /** Generates a RewriteRule that will put newValue into anything matching the xPathExpression */
+  def rewrite(xPathExpression: => Seq[Node], newValue: Elem): RewriteRule = {
+    new RewriteRule {
 
       def innerTransform(n: Node): Node = n match {
         case elem @ Elem(_, _, _, _, child @ _*) if xPathExpression.contains(elem) => newValue
@@ -17,7 +17,13 @@ object NodeChanger {
 
       override def transform(n: Node) = innerTransform(n)
     }
+  }
 
-    new RuleTransformer(rewrite).transform(doc).head.asInstanceOf[Elem]
+  /** Actually perform a conversion on the Node */
+  def convertNodeAt(doc: Node, xPathExpression: => Seq[Node], newValue: Elem): Elem = {
+
+    val rewriteRule = rewrite(xPathExpression, newValue)
+
+    new RuleTransformer(rewriteRule).transform(doc).head.asInstanceOf[Elem]
   }
 }
