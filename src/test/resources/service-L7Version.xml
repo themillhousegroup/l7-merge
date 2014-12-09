@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><l7:Service xmlns:l7="http://ns.l7tech.com/2010/04/gateway-management" id="786490" version="4"><l7:ServiceDetail folderId="1081368" id="786490" version="4"><l7:Name>L7Version</l7:Name><l7:Enabled>true</l7:Enabled><l7:ServiceMappings><l7:HttpMapping><l7:UrlPattern>/_admin/version</l7:UrlPattern><l7:Verbs><l7:Verb>GET</l7:Verb></l7:Verbs></l7:HttpMapping></l7:ServiceMappings><l7:Properties><l7:Property key="policyRevision"><l7:LongValue>4</l7:LongValue></l7:Property><l7:Property key="wssProcessingEnabled"><l7:BooleanValue>false</l7:BooleanValue></l7:Property><l7:Property key="soap"><l7:BooleanValue>false</l7:BooleanValue></l7:Property><l7:Property key="internal"><l7:BooleanValue>false</l7:BooleanValue></l7:Property></l7:Properties></l7:ServiceDetail><l7:Resources><l7:ResourceSet tag="policy"><l7:Resource type="policy" version="4">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;wsp:Policy xmlns:L7p="http://www.layer7tech.com/ws/policy" xmlns:wsp="http://schemas.xmlsoap.org/ws/2002/12/policy"&gt;
+    &lt;wsp:All wsp:Usage="Required"&gt;
+        &lt;L7p:SslAssertion/&gt;
+        &lt;L7p:HttpBasic/&gt;
+        &lt;L7p:CustomizeErrorResponse&gt;
+            &lt;L7p:Content stringValue="You shall not pass"/&gt;
+            &lt;L7p:ExtraHeaders nameValuePairArray="included"/&gt;
+            &lt;L7p:HttpStatus stringValue="400"/&gt;
+        &lt;/L7p:CustomizeErrorResponse&gt;
+        &lt;wsp:OneOrMore wsp:Usage="Required"&gt;
+            &lt;L7p:SpecificUser&gt;
+                &lt;L7p:IdentityProviderOid longValue="-2"/&gt;
+                &lt;L7p:UserLogin stringValue="watchdog"/&gt;
+                &lt;L7p:UserName stringValue="watchdog"/&gt;
+                &lt;L7p:UserUid stringValue="1114112"/&gt;
+            &lt;/L7p:SpecificUser&gt;
+        &lt;/wsp:OneOrMore&gt;
+        &lt;L7p:HardcodedResponse&gt;
+            &lt;L7p:Base64ResponseBody stringValue="IiR7Z2F0ZXdheS5sN0NvbmZpZ0J1aWxkfSI="/&gt;
+            &lt;L7p:EarlyResponse booleanValue="true"/&gt;
+            &lt;L7p:ResponseContentType stringValue="application/json; charset=UTF-8"/&gt;
+        &lt;/L7p:HardcodedResponse&gt;
+    &lt;/wsp:All&gt;
+&lt;/wsp:Policy&gt;
+</l7:Resource></l7:ResourceSet></l7:Resources></l7:Service>
