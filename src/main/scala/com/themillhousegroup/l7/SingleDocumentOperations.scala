@@ -24,7 +24,7 @@ object SingleDocumentOperations extends LazyLogging {
   /**
    * @return true if a merge was actually performed
    */
-  def merge(left: HierarchyNode, right: HierarchyNode, destination: Option[File] = None, options: Seq[String] = Nil): Boolean = {
+  def merge(left: HierarchyNode, right: HierarchyNode, destination: Option[File] = None, options: Seq[String] = Nil): Option[HierarchyNode] = {
 
     val (older, newer) = findOlderAndNewer(left, right, options)
 
@@ -33,19 +33,19 @@ object SingleDocumentOperations extends LazyLogging {
     if (((newer.id == older.id) && (newer.guid == older.guid)) || options.contains(forceMerge)) {
       if (destination.isEmpty) { // i.e. dry run mode
         logger.info("Looks like change can be merged")
-        false
+        None
       } else {
         val merged = mergeTogether(older, newer, destination.get, options)
         //println(s"Merged: $merged")
         logger.debug(s"Merged and wrote the following to ${merged.source.getAbsolutePath}:\n${merged.content}")
-        true
+        Some(merged)
       }
     } else {
       logger.error(s"Files seem to be referring to different things. Details follow (older, then newer):")
       logger.error(s"IDs:        ${older.id}\t${newer.id}")
       logger.error(s"GUIDs:      ${older.guid}\t${newer.guid}")
       logger.error(s"folderIDs:  ${older.folderId}\t${newer.folderId}")
-      false
+      None
     }
 
   }
