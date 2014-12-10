@@ -3,6 +3,7 @@ package com.themillhousegroup.l7
 import java.io.File
 import com.typesafe.scalalogging.LazyLogging
 import com.themillhousegroup.l7.commands.SingleDocumentMergeCommand
+import com.themillhousegroup.l7.commands.OptionProcessing.withOption
 import scala.xml.Elem
 import com.themillhousegroup.l7.xml.LayerSevenXMLHelper._
 import com.themillhousegroup.l7.xml.NodeChanger
@@ -17,11 +18,7 @@ object SingleDocumentOperations extends LazyLogging {
   }
 
   def findOlderAndNewer(left: HierarchyNode, right: HierarchyNode, options: Seq[String] = Nil): (HierarchyNode, HierarchyNode) = {
-    if (options.contains(versionAware)) {
-      olderOf(left, right) -> newerOf(left, right)
-    } else {
-      left -> right
-    }
+    withOption(options, versionAware)(left -> right)(olderOf(left, right) -> newerOf(left, right))
   }
 
   /**
