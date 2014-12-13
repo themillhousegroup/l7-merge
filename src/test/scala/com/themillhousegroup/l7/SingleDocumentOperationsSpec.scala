@@ -5,6 +5,8 @@ import com.themillhousegroup.l7.test.LayerSevenDocumentFixtures.HierarchyNodes._
 import com.themillhousegroup.l7.commands.SingleDocumentMergeCommand
 import java.io.File
 import org.specs2.mock.Mockito
+import scala.io.Source
+import com.themillhousegroup.l7.test.LayerSevenDocumentFixtures
 
 class SingleDocumentOperationsSpec extends Specification with Mockito {
 
@@ -41,6 +43,16 @@ class SingleDocumentOperationsSpec extends Specification with Mockito {
       println(result.get)
 
       result.get.version must beEqualTo(4)
+    }
+
+    "Create results that are indistinguishable from the originals" in {
+      val dummyFile = File.createTempFile("tmp", ".tmp")
+      SingleDocumentOperations.merge(serviceVersionFour, serviceVersionFour, Some(dummyFile))
+
+      val orig = Source.fromFile(LayerSevenDocumentFixtures.Files.serviceVersionFour).mkString
+      val result = Source.fromFile(dummyFile).mkString
+
+      result must beEqualTo(orig) or pending("SKIPPED - Need to fix attribute ordering")
     }
   }
 }
