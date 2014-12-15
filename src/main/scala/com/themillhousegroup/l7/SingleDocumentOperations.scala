@@ -35,7 +35,7 @@ object SingleDocumentOperations extends LazyLogging {
         logger.info("Looks like change can be merged")
         None
       } else {
-        val merged = mergeTogether(older, newer, destination.get, options)
+        val merged = mergeTogether(older, newer, destination.get)(options)
         //println(s"Merged: $merged")
         logger.debug(s"Merged and wrote the following to ${merged.source.getAbsolutePath}:\n${merged.content}")
         Some(merged)
@@ -73,34 +73,28 @@ object SingleDocumentOperations extends LazyLogging {
     NodeChanger.convertNodeAt(newer, (newer \\ "Resources" \\ "Resource"), encodeResource(newerResourceNode, hybrid))
   }
 
-  def mergeTogether(older: HierarchyNode, newer: HierarchyNode, destinationFile: File, options: Seq[String] = Nil): HierarchyNode = {
+  def mergeTogether(older: HierarchyNode, newer: HierarchyNode, destinationFile: File)(implicit options: Seq[String] = Nil): HierarchyNode = {
 
     val innerContent = options.find(SingleDocumentMergeCommand.Options.onlyStructural == _).fold(newer.content)(_ => retainOldReferences(older.content, newer.content))
 
     val desiredVersion =
-      if (options.contains(SingleDocumentMergeCommand.Options.retainOldVersions)) {
+      withOption(SingleDocumentMergeCommand.Options.retainOldVersions)(newer.version) {
         logger.info(s"Retaining 'older' version ${older.version}, not using 'newer': ${newer.version}")
         older.version
-      } else {
-        newer.version
       }
 
     val desiredRevision =
-      if (options.contains(SingleDocumentMergeCommand.Options.retainOldVersions)) {
+      withOption(SingleDocumentMergeCommand.Options.retainOldVersions)(serviceDetailPolicyRevision(newer.content).get) {
         val oldRevision = serviceDetailPolicyRevision(older.content).get
         logger.info(s"Retaining 'older' policy revision ${oldRevision}")
         oldRevision
-      } else {
-        serviceDetailPolicyRevision(newer.content).get
       }
 
     val desiredResourceVersion =
-      if (options.contains(SingleDocumentMergeCommand.Options.retainOldVersions)) {
+      withOption(SingleDocumentMergeCommand.Options.retainOldVersions)(resourceVersion(newer.content).get) {
         val oldResourceVersion = resourceVersion(older.content).get
         logger.info(s"Retaining 'older' resource version ${oldResourceVersion}")
         oldResourceVersion
-      } else {
-        resourceVersion(newer.content).get
       }
 
     val updatedContent =
