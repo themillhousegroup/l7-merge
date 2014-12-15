@@ -73,29 +73,18 @@ object SingleDocumentOperations extends LazyLogging {
     NodeChanger.convertNodeAt(newer, (newer \\ "Resources" \\ "Resource"), encodeResource(newerResourceNode, hybrid))
   }
 
+  /** Returns (version, revision, resourceVersion) triple */
+  def desiredVersions(older: HierarchyNode, newer: HierarchyNode)(implicit options: Seq[String]): (Int, Int, Int) = {
+    withOption(SingleDocumentMergeCommand.Options.retainOldVersions)(
+      (newer.version, serviceDetailPolicyRevision(newer.content).get, resourceVersion(newer.content).get))(
+        (older.version, serviceDetailPolicyRevision(older.content).get, resourceVersion(older.content).get))
+  }
+
   def mergeTogether(older: HierarchyNode, newer: HierarchyNode, destinationFile: File)(implicit options: Seq[String] = Nil): HierarchyNode = {
 
-    val innerContent = options.find(SingleDocumentMergeCommand.Options.onlyStructural == _).fold(newer.content)(_ => retainOldReferences(older.content, newer.content))
+    val innerContent = withOption(SingleDocumentMergeCommand.Options.onlyStructural)(newer.content)(retainOldReferences(older.content, newer.content))
 
-    val desiredVersion =
-      withOption(SingleDocumentMergeCommand.Options.retainOldVersions)(newer.version) {
-        logger.info(s"Retaining 'older' version ${older.version}, not using 'newer': ${newer.version}")
-        older.version
-      }
-
-    val desiredRevision =
-      withOption(SingleDocumentMergeCommand.Options.retainOldVersions)(serviceDetailPolicyRevision(newer.content).get) {
-        val oldRevision = serviceDetailPolicyRevision(older.content).get
-        logger.info(s"Retaining 'older' policy revision ${oldRevision}")
-        oldRevision
-      }
-
-    val desiredResourceVersion =
-      withOption(SingleDocumentMergeCommand.Options.retainOldVersions)(resourceVersion(newer.content).get) {
-        val oldResourceVersion = resourceVersion(older.content).get
-        logger.info(s"Retaining 'older' resource version ${oldResourceVersion}")
-        oldResourceVersion
-      }
+    val (desiredVersion, desiredRevision, desiredResourceVersion) = desiredVersions(older, newer)
 
     val updatedContent =
       replaceId(
