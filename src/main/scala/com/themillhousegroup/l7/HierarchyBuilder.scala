@@ -6,7 +6,7 @@ import scala.collection.mutable.ListBuffer
 import java.util.UUID
 import com.typesafe.scalalogging.LazyLogging
 import scala.Some
-import com.themillhousegroup.l7.xml.{ NodeChanger, AttributeChanger }
+import com.themillhousegroup.l7.xml.{ LayerSevenXMLHelper, NodeChanger, AttributeChanger }
 import com.themillhousegroup.l7.xml.LayerSevenXMLHelper._
 import com.themillhousegroup.l7.commands.SingleDocumentMergeCommand
 
@@ -29,7 +29,7 @@ object HierarchyBuilder extends LazyLogging {
   }
 
   private def buildNode(f: File): Option[MutableTreeNode] = {
-    val doc = scala.xml.XML.loadFile(f)
+    val doc = LayerSevenXMLHelper.readFromFile(f)
     if (isSupported(doc)) {
       Some(MutableTreeNode(id(doc), folderId(doc), guid(doc), version(doc), name(doc), None, doc, f, ListBuffer()))
     } else {

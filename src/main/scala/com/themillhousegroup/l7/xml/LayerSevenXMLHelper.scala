@@ -138,6 +138,27 @@ object LayerSevenXMLHelper {
       true).document.docElem.asInstanceOf[Elem]
   }
 
+  def readFromFile(f: File): Elem = {
+    flipAttribs(ConstructingParser.fromSource(
+      scala.io.Source.fromFile(f),
+      true).document.docElem.asInstanceOf[Elem])
+  }
+
+  /**
+   * By default, Scala's XML support reads attributes in 'reverse order' -
+   * while it's not normally a problem, it is when we are trying to
+   * minimise diffs when we write it back. So we reverse them here.
+   */
+  def flipAttribs(e: Elem): Elem = {
+    var nm = MetaData.normalize(Null, e.scope)
+    e.attributes.toSeq.reverse.foreach { att =>
+      att match {
+        case md: MetaData => nm = nm.append(md, TopScope)
+      }
+    }
+    e.copy(attributes = nm)
+  }
+
   /** Encodes all the children of this resource, returning a new version of resourceNode */
   def encodeChildren(resourceNode: Node): Elem = {
     val encodedChildren = resourceNode.nonEmptyChildren.map(child => Text(StringEscapeUtils.escapeXml(child.toString)))
