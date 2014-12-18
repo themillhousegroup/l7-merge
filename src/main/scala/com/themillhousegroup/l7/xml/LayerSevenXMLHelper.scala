@@ -109,16 +109,12 @@ object LayerSevenXMLHelper {
   def writeTo(f: File, doc: Elem): File = {
 
     val sr = new StringWriter()
-    XML.write(sr, doc, "UTF-8", true, null)
+    LayerSevenXMLWriter.write(sr, doc)
     val escaped = sr.toString
     val unescaped = escaped.replace("&quot;", "\"")
-    val withStandalone = unescaped.replace(
-      xmlPreamble,
-      """<?xml version="1.0" encoding="UTF-8" standalone="no"?>""")
-    val newlineStripped = withStandalone.replaceFirst("\\n", "")
 
     val writer = new FileWriter(f)
-    writer.write(newlineStripped)
+    writer.write(unescaped)
     writer.close
 
     f
@@ -132,31 +128,15 @@ object LayerSevenXMLHelper {
     val txt = resourceNode.text
     val unescaped = StringEscapeUtils.unescapeXml(txt)
 
-    // Can't just use XML.loadString as it eats CDATA blocks; http://blog.markfeeney.com/2011/03/scala-xml-gotchas.html
-    ConstructingParser.fromSource(
-      scala.io.Source.fromString(unescaped),
-      true).document.docElem.asInstanceOf[Elem]
+    sourceToXml(scala.io.Source.fromString(unescaped))
   }
 
-  def readFromFile(f: File): Elem = {
-    flipAttribs(ConstructingParser.fromSource(
-      scala.io.Source.fromFile(f),
-      true).document.docElem.asInstanceOf[Elem])
-  }
+  def readFromFile(f: File): Elem = sourceToXml(scala.io.Source.fromFile(f))
 
-  /**
-   * By default, Scala's XML support reads attributes in 'reverse order' -
-   * while it's not normally a problem, it is when we are trying to
-   * minimise diffs when we write it back. So we reverse them here.
-   */
-  def flipAttribs(e: Elem): Elem = {
-    var nm = MetaData.normalize(Null, e.scope)
-    e.attributes.toSeq.reverse.foreach { att =>
-      att match {
-        case md: MetaData => nm = nm.append(md, TopScope)
-      }
-    }
-    e.copy(attributes = nm)
+  private def sourceToXml(source: scala.io.Source): Elem = {
+    // Can't just use XML.loadString as it eats CDATA blocks;
+    // http://blog.markfeeney.com/2011/03/scala-xml-gotchas.html
+    ConstructingParser.fromSource(source, true).document.docElem.asInstanceOf[Elem]
   }
 
   /** Encodes all the children of this resource, returning a new version of resourceNode */

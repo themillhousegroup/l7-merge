@@ -52,7 +52,7 @@ class SingleDocumentOperationsSpec extends Specification with Mockito {
       val orig = Source.fromFile(LayerSevenDocumentFixtures.Files.serviceVersionFour).mkString
       val result = Source.fromFile(dummyFile).mkString
 
-      result must beEqualTo(orig) or pending("SKIPPED - Need to fix attribute ordering")
+      result must beEqualTo(orig)
     }
   }
 }
