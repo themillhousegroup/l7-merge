@@ -14,6 +14,32 @@ Build the runnable app with `sbt stage`.
 
 Run it with `./target/universal/stage/bin/l7-merge` (UNIX-like OSes) or
 `target\universal\stage\bin\l7-merge.bat` (Windows)
-and it will tell you about the available commands.
+and it will tell you about the available commands:
 
+```
+compare-one [file1] [file2] to compare the contents of two files
+
+merge-one <file1> <file2> [merge-options] to merge the contents of file2 into file1
+
+Where [merge-options] are:
+--force                 Merge even if the files seem 'too different'
+--only-structural       Retain references to old GUIDs - i.e. changes are structural to this file
+--version-aware         Inspect for version numbers and use those to determine the older/newer file
+--retain-old-versions   Keep the 'version' numbers from the 'older' file (minimises diffs)
+
+visualise [directory] to visualise the contents of a directory
+```
+
+##### Typical invocation:
+Say you've got a recently-exported Layer7 XML file called `export/service-changed.xml`.
+
+Your Git repository of Layer7 configuration files is at `../git/src`.
+
+To merge back the minimal differences between your exported file and Git:
+
+```
+<PATH_TO_L7-MERGE>/bin/l7-merge merge-one ../git/src/service-changed.xml export/service-changed.xml --force --only-structural --retain-old-versions
+```
+
+Now a `git diff` in your Git repo should show the minimal changes.
 
