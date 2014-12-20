@@ -10,10 +10,13 @@ the "built-in" system implemented within the L7 results in very large deltas.
 
 #### Usage
 
-Build the runnable app with `sbt stage`.
+You'll need to have Java installed in your `PATH`.
 
-Run it with `./target/universal/stage/bin/l7-merge` (UNIX-like OSes) or
-`target\universal\stage\bin\l7-merge.bat` (Windows)
+Run it with 
+
+ - `[PATH_TO_L7-MERGE]/bin/l7-merge` (UNIX-like OSes); or
+ - `[PATH_TO_L7-MERGE]\bin\l7-merge.bat` (Windows)
+ 
 and it will tell you about the available commands:
 
 ```
@@ -38,8 +41,15 @@ Your Git repository of Layer7 configuration files is at `../git/src`.
 To merge back the minimal differences between your exported file and Git:
 
 ```
-<PATH_TO_L7-MERGE>/bin/l7-merge merge-one ../git/src/service-changed.xml export/service-changed.xml --force --only-structural --retain-old-versions
+[PATH_TO_L7-MERGE]/bin/l7-merge merge-one ../git/src/service-changed.xml export/service-changed.xml --force --only-structural --retain-old-versions
 ```
 
 Now a `git diff` in your Git repo should show the minimal changes.
 
+
+#### Developing
+
+l7-merge is written in Scala and builds with SBT. Test with `sbt test`.
+
+
+Build the runnable app with `sbt stage`.
