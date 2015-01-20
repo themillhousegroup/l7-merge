@@ -19,7 +19,7 @@ object LayerSevenXMLHelper {
     doc \@ "id" toInt
   }
 
-  def replaceId(doc: Elem, newId: Int): Elem = {
+  def replaceId(newId: Int)(doc: Elem): Elem = {
     AttributeChanger.convert(doc, None, "id", newId.toString)
   }
 
@@ -32,7 +32,7 @@ object LayerSevenXMLHelper {
     }
   }
 
-  def replaceFolderId(doc: Elem, newFolderId: Option[Int]): Elem = {
+  def replaceFolderId(newFolderId: Option[Int])(doc: Elem): Elem = {
     newFolderId.map { f =>
       AttributeChanger.convert(doc, None, "folderId", f.toString)
     }.getOrElse(doc)
@@ -45,7 +45,7 @@ object LayerSevenXMLHelper {
     }
   }
 
-  def replaceGuid(doc: Elem, newGuid: Option[UUID]): Elem = {
+  def replaceGuid(newGuid: Option[UUID])(doc: Elem): Elem = {
     newGuid.map { guid =>
       AttributeChanger.convert(doc, Some("PolicyDetail"), "guid", guid.toString)
     }.getOrElse(doc)
@@ -59,7 +59,7 @@ object LayerSevenXMLHelper {
     doc \@ "version" toInt
   }
 
-  def replaceVersion(doc: Elem, newVersion: Int): Elem = {
+  def replaceVersion(newVersion: Int)(doc: Elem): Elem = {
     AttributeChanger.convert(doc, None, "version", newVersion.toString)
   }
 
@@ -69,7 +69,7 @@ object LayerSevenXMLHelper {
     maybeRevisionProperty.map(prop => (prop \\ "LongValue").head.text.toInt)
   }
 
-  def replacePolicyRevision(doc: Elem, maybeNewRevision: Option[Int]): Elem = {
+  def replacePolicyRevision(maybeNewRevision: Option[Int])(doc: Elem): Elem = {
     maybeNewRevision.fold(doc) { newRevision =>
       val properties = (doc \\ "ServiceDetail" \\ "Properties" \\ "Property")
       val targetNode = (thatHasAttributeValue(properties, "key", "policyRevision").get \\ "LongValue").head.asInstanceOf[Elem]
@@ -85,7 +85,7 @@ object LayerSevenXMLHelper {
     }
   }
 
-  def replaceResourceVersion(doc: Elem, maybeNewVersion: Option[Int]): Elem = {
+  def replaceResourceVersion(maybeNewVersion: Option[Int])(doc: Elem): Elem = {
     maybeNewVersion.fold(doc) { newVersion =>
       val firstResource = (doc \\ "Resources" \\ "Resource").head
       val newResource = AttributeChanger.convert(firstResource, Some("Resource"), "version", newVersion.toString)

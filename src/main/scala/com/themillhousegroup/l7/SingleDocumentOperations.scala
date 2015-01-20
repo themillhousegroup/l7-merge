@@ -86,19 +86,15 @@ object SingleDocumentOperations extends LazyLogging {
 
     val (desiredVersion, desiredRevision, desiredResourceVersion) = desiredVersions(older, newer)
 
-    // FIXME: This is hideous. Would like to do something like Clojure's "Threading" to achieve this:
-    val updatedContent =
-      replaceId(
-        replaceFolderId(
-          replaceResourceVersion(
-            replaceVersion(
-              replacePolicyRevision(
-                replaceGuid(innerContent, older.guid),
-                desiredRevision),
-              desiredVersion),
-            desiredResourceVersion),
-          older.folderId),
-        older.id)
+    val process =
+      replaceGuid(older.guid) _ andThen
+        replacePolicyRevision(desiredRevision) _ andThen
+        replaceVersion(desiredVersion) _ andThen
+        replaceResourceVersion(desiredResourceVersion) _ andThen
+        replaceFolderId(older.folderId) _ andThen
+        replaceId(older.id) _
+
+    val updatedContent = process(innerContent)
 
     writeTo(destinationFile, updatedContent)
 
