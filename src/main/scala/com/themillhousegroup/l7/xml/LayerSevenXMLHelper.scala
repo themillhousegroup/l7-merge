@@ -79,8 +79,10 @@ object LayerSevenXMLHelper {
   }
 
   def resourceVersion(doc: Elem): Option[Int] = {
-    val firstResource = (doc \\ "Resources" \\ "Resource").headOption
-    firstResource.map(_ \@ "version" toInt)
+    val maybeFirstResource = (doc \\ "Resources" \\ "Resource").headOption
+    maybeFirstResource.flatMap { firstResource =>
+      optAttrib(firstResource, "version").map(_.toInt)
+    }
   }
 
   def replaceResourceVersion(doc: Elem, maybeNewVersion: Option[Int]): Elem = {
