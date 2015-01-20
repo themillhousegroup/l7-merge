@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><l7:Policy xmlns:l7="http://ns.l7tech.com/2010/04/gateway-management" guid="9a6c71c0-e386-4270-ba93-fb7db2aee3d5" id="819241" version="1"><l7:PolicyDetail folderId="1081353" guid="9a6c71c0-e386-4270-ba93-fb7db2aee3d5" id="819241" version="0"><l7:Name>Utility Calls</l7:Name><l7:PolicyType>Include</l7:PolicyType><l7:Properties><l7:Property key="revision"><l7:LongValue>1</l7:LongValue></l7:Property><l7:Property key="soap"><l7:BooleanValue>false</l7:BooleanValue></l7:Property></l7:Properties></l7:PolicyDetail><l7:Resources><l7:ResourceSet tag="policy"><l7:Resource type="policy">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;wsp:Policy xmlns:L7p="http://www.layer7tech.com/ws/policy" xmlns:wsp="http://schemas.xmlsoap.org/ws/2002/12/policy"&gt;
+    &lt;wsp:All wsp:Usage="Required"&gt;
+        &lt;L7p:AuditDetailAssertion&gt;
+            &lt;L7p:Detail stringValue="Policy Fragment: Second Version"/&gt;
+        &lt;/L7p:AuditDetailAssertion&gt;
+        &lt;L7p:Include&gt;
+            &lt;L7p:PolicyGuid stringValue="d4edbf19-1686-4605-a26f-2ef1ca9fb9a3"/&gt;
+        &lt;/L7p:Include&gt;
+    &lt;/wsp:All&gt;
+&lt;/wsp:Policy&gt;
+</l7:Resource></l7:ResourceSet></l7:Resources></l7:Policy>

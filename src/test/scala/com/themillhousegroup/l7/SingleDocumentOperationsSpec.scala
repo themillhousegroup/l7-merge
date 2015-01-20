@@ -45,7 +45,17 @@ class SingleDocumentOperationsSpec extends Specification with Mockito {
       result.get.version must beEqualTo(4)
     }
 
-    "Create results that are indistinguishable from the originals" in {
+    "Create results that are indistinguishable from the originals for a service definition" in {
+      val dummyFile = File.createTempFile("tmp", ".tmp")
+      SingleDocumentOperations.merge(serviceVersionFour, serviceVersionFour, Some(dummyFile))
+
+      val orig = Source.fromFile(LayerSevenDocumentFixtures.Files.serviceVersionFour).mkString
+      val result = Source.fromFile(dummyFile).mkString
+
+      result must beEqualTo(orig)
+    }
+
+    "Create results that are indistinguishable from the originals for a policy definition" in {
       val dummyFile = File.createTempFile("tmp", ".tmp")
       SingleDocumentOperations.merge(serviceVersionFour, serviceVersionFour, Some(dummyFile))
 
