@@ -74,10 +74,10 @@ object SingleDocumentOperations extends LazyLogging {
   }
 
   /** Returns (version, revision, resourceVersion) triple */
-  def desiredVersions(older: HierarchyNode, newer: HierarchyNode)(implicit options: Seq[String]): (Int, Int, Int) = {
+  def desiredVersions(older: HierarchyNode, newer: HierarchyNode)(implicit options: Seq[String]): (Int, Option[Int], Option[Int]) = {
     withOption(SingleDocumentMergeCommand.Options.retainOldVersions)(
-      (newer.version, serviceDetailPolicyRevision(newer.content).get, resourceVersion(newer.content).get))(
-        (older.version, serviceDetailPolicyRevision(older.content).get, resourceVersion(older.content).get))
+      (newer.version, serviceDetailPolicyRevision(newer.content), resourceVersion(newer.content)))(
+        (older.version, serviceDetailPolicyRevision(older.content), resourceVersion(older.content)))
   }
 
   def mergeTogether(older: HierarchyNode, newer: HierarchyNode, destinationFile: File)(implicit options: Seq[String] = Nil): HierarchyNode = {
@@ -86,6 +86,7 @@ object SingleDocumentOperations extends LazyLogging {
 
     val (desiredVersion, desiredRevision, desiredResourceVersion) = desiredVersions(older, newer)
 
+    // FIXME: This is hideous. Would like to do something like Clojure's "Threading" to achieve this:
     val updatedContent =
       replaceId(
         replaceFolderId(

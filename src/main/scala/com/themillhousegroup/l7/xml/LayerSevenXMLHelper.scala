@@ -69,11 +69,13 @@ object LayerSevenXMLHelper {
     maybeRevisionProperty.map(prop => (prop \\ "LongValue").head.text.toInt)
   }
 
-  def replacePolicyRevision(doc: Elem, newRevision: Int): Elem = {
-    val properties = (doc \\ "ServiceDetail" \\ "Properties" \\ "Property")
-    val targetNode = (thatHasAttributeValue(properties, "key", "policyRevision").get \\ "LongValue").head.asInstanceOf[Elem]
-    val newTarget = targetNode.copy(child = Seq(Text(newRevision.toString)))
-    NodeChanger.convertNodeAt(doc, targetNode, newTarget)
+  def replacePolicyRevision(doc: Elem, maybeNewRevision: Option[Int]): Elem = {
+    maybeNewRevision.fold(doc) { newRevision =>
+      val properties = (doc \\ "ServiceDetail" \\ "Properties" \\ "Property")
+      val targetNode = (thatHasAttributeValue(properties, "key", "policyRevision").get \\ "LongValue").head.asInstanceOf[Elem]
+      val newTarget = targetNode.copy(child = Seq(Text(newRevision.toString)))
+      NodeChanger.convertNodeAt(doc, targetNode, newTarget)
+    }
   }
 
   def resourceVersion(doc: Elem): Option[Int] = {
@@ -81,10 +83,12 @@ object LayerSevenXMLHelper {
     firstResource.map(_ \@ "version" toInt)
   }
 
-  def replaceResourceVersion(doc: Elem, newVersion: Int): Elem = {
-    val firstResource = (doc \\ "Resources" \\ "Resource").head
-    val newResource = AttributeChanger.convert(firstResource, Some("Resource"), "version", newVersion.toString)
-    NodeChanger.convertNodeAt(doc, (doc \\ "Resources" \\ "Resource"), newResource)
+  def replaceResourceVersion(doc: Elem, maybeNewVersion: Option[Int]): Elem = {
+    maybeNewVersion.fold(doc) { newVersion =>
+      val firstResource = (doc \\ "Resources" \\ "Resource").head
+      val newResource = AttributeChanger.convert(firstResource, Some("Resource"), "version", newVersion.toString)
+      NodeChanger.convertNodeAt(doc, (doc \\ "Resources" \\ "Resource"), newResource)
+    }
   }
 
   def thatHasAttributeValue(nodes: Seq[Node], attName: String, attValue: String): Option[Node] = {
