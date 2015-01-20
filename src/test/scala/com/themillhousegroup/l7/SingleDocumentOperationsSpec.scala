@@ -34,7 +34,7 @@ class SingleDocumentOperationsSpec extends Specification with Mockito {
       SingleDocumentOperations.compare(serviceVersionFive, serviceVersionFour) must beNone
     }
 
-    "Support merging two things" in {
+    "Support merging two service definitions" in {
       val dummyFile = File.createTempFile("tmp", ".tmp")
       val result = SingleDocumentOperations.merge(serviceVersionFive, serviceVersionFour, Some(dummyFile))
 
@@ -55,11 +55,22 @@ class SingleDocumentOperationsSpec extends Specification with Mockito {
       result must beEqualTo(orig)
     }
 
+    "Support merging two policy definitions" in {
+      val dummyFile = File.createTempFile("tmp", ".tmp")
+      val result = SingleDocumentOperations.merge(policyVersionZero, policyVersionOne, Some(dummyFile))
+
+      result must beSome[HierarchyNode]
+
+      println(result.get)
+
+      result.get.version must beEqualTo(1)
+    }
+
     "Create results that are indistinguishable from the originals for a policy definition" in {
       val dummyFile = File.createTempFile("tmp", ".tmp")
-      SingleDocumentOperations.merge(serviceVersionFour, serviceVersionFour, Some(dummyFile))
+      SingleDocumentOperations.merge(policyVersionZero, policyVersionZero, Some(dummyFile))
 
-      val orig = Source.fromFile(LayerSevenDocumentFixtures.Files.serviceVersionFour).mkString
+      val orig = Source.fromFile(LayerSevenDocumentFixtures.Files.policyVersionZero).mkString
       val result = Source.fromFile(dummyFile).mkString
 
       result must beEqualTo(orig)
